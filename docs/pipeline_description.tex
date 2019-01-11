@@ -199,11 +199,14 @@ This yielded, separately for both flanks of every gene, a number $n^\text{obs}$ 
 
 Given an insertional mutant $m$'s \emph{true} (unknown) abundances $A^\text{in}_{m}$ and $A^\text{out}_{m}$ in a particular pair of input and output libraries, and given the respective losses (i.e. fraction of unobserved or filtered UMIs) $\ell^\text{in}_{mf}$ and $\ell^\text{out}_{mf}$ for flank $f$ (3' or 5'), we assumed that the observed number of per-flank UMIs (after filtering) is Poisson distributed with mean $A^\text{in}_{m}\cdot(1-\ell^\text{in}_{mf})$ respectively $A^\text{out}_{m}\cdot(1-\ell^\text{out}_{mf})$.  For the \emph{sum} $N^\text{in}_m$ respectively $N^\text{out}_m$ of UMIs on the two flanks (5' and 3') of the mutamt $m$ in the input respectively output library, it follows that
 \begin{align}\label{eq-model}
-  N^\text{in}_m\;\big|\;A^\text{in}_{m} &\sim \text{Poisson}\left(A^\text{in}_{m}\cdot(1-\bar\ell^\text{in}_m)\right), &
-  N^\text{out}_m\;\big|\;A^\text{out}_{m} &\sim \text{Poisson}\left(A^\text{out}_{m}\cdot(1-\bar\ell^\text{out}_m)\right) \\
+  N^\text{in}_m\;\big|\;A^\text{in}_{m} &\sim \text{Poisson}\left(
+    2\cdot A^\text{in}_{m}\cdot (1-\bar\ell^\text{in}_m)\right), &
+  \hspace{-5pt}
+  N^\text{out}_m\;\big|\;A^\text{out}_{m} &\sim \text{Poisson}\left(
+    2\cdot A^\text{out}_{m}\cdot (1-\bar\ell^\text{out}_m)\right) \\
   \text{where}\quad
-  \bar\ell^\text{in}_m &= \ell^\text{in}_{m,5'} + \ell^\text{in}_{m,3'}, &
-  \bar\ell^\text{out}_m &= \ell^\text{out}_{m,5'} + \ell^\text{out}_{m,3'}. \nonumber
+  \bar\ell^\text{in}_m &= \tfrac{1}{2}\ell^\text{in}_{m,5'} + \tfrac{1}{2}\ell^\text{in}_{m,3'}, &
+  \bar\ell^\text{out}_m &= \tfrac{1}{2}\ell^\text{out}_{m,5'} + \tfrac{1}{2}\ell^\text{out}_{m,3'}. \nonumber
 \end{align} 
 
 We then further assumed that for neutral mutants the \emph{expected} true input and output abundances are proportional (with the same factor $\lambda$ for all neutral mutants in a particular pair of input and output libraries), but that the output abundances have additional dispersion $d$ due to random fluctuations of mutant growth, i.e. that
