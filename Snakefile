@@ -14,6 +14,17 @@ rule demultiplex_bam_pe:
 	log:
 		"data/{sample}/demultiplex.log"
 
+rule simulate_trumicount_output:
+	"""Simulates TRUmiCount-generated count tables
+	"""
+	input:
+		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab")
+	output:
+		pool_in="data/Simulation/sim-in.count.tab",
+		pool_out="data/Simulation/sim-out.count.tab",
+		truth="data/Simulation/sim.truth.tab"
+	script:	"scripts/simulate_trumicount_output.R"
+
 rule bam_to_fqgz_pe:
 	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
 	
