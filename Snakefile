@@ -2,18 +2,6 @@ include: "scripts/snakemake.inc"
 
 configfile: "cfg/config.yaml"
 
-rule demultiplex_bam_pe:
-	input:
-		mpx="data/{sample}/multiplexed.bam",
-		libs="data/{sample}/libraries.tab"
-	output: dynamic("data/{sample}/{lib}.demux.bam")
-	params:
-		odir="data/{sample}",
-		opts=config_options('deML'),
-		scratch=default_scratch
-	log:
-		"data/{sample}/demultiplex.log"
-
 rule simulate_trumicount_output:
 	"""Simulates TRUmiCount-generated count tables
 	"""
@@ -24,6 +12,22 @@ rule simulate_trumicount_output:
 		pool_out="data/Simulation/sim-out.count.tab",
 		truth="data/Simulation/sim.truth.tab"
 	script:	"scripts/simulate_trumicount_output.R"
+
+rule download_uhse_et_al:
+	output:	"data/Uhse_et_al.2018/exp{experiment}-r{replicate}.{pool}.bam"
+	params:
+		pool="{pool}",
+		experiment="{experiment}",
+		replicate="{replicate}"
+	shell:
+		"if   [[ '{params.pool}' == 'input'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'input'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'output' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'output' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}'; "
+		"fi;"
+		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';"
+		"echo \"Downloading $URL into {output}\";"
+		"curl -o {output:q} \"$URL\""
 
 rule bam_to_fqgz_pe:
 	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
@@ -160,3 +164,23 @@ rule trumicount_pe:
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
 		"  {params.opts}" #params.opts can contain MULTPLE options, hence don't quote
+
+rule differential_abundance:
+	"""Compares input (pre-infection) and an output (post-infection) samples for a mutant pool
+
+	Produces an HTML report and a table of log2 fold changes of knockout abundances in
+	the output pool relative to a set of known-neutral knockouts (marked with 'Neutral'
+	in the knockout GFF file), and normlized for differences in the knockout abundance
+	in the input pool
+	"""
+	input:
+		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab"),
+		pool_in="data/{dir}/{exp}-in.count.tab",
+		pool_out="data/{dir}/{exp}-out.count.tab",
+		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
+		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf"
+	output:
+		table="data/{dir}/{exp}.da.tab",
+		html="data/{dir}/{exp}.da.html"
+	log:	"data/{dir}/{exp}.result.log"
+	script:	"scripts/generate_differential_abundance_report.R"
