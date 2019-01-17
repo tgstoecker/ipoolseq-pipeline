@@ -1,0 +1,31 @@
+trimmomatic:
+  - file: '*'
+    opts: 'ILLUMINACLIP:data/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
+
+reference_genome:
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/reference.fa'
+
+knockouts:
+  - file: 'data/Simulation/{lib}'
+    opts: 'cfg/Uhse_et_al.2018/knockouts.gff'
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/knockouts.gff'
+
+ngm:
+  - file: '*'
+    opts: '--end-to-end --pair-score-cutoff 0.5 --sensitivity 0.3 --kmer 13 --kmer-skip 0 --skip-save'
+
+trumicount:
+  - file: 'data/Uhse_et_al.2018/expB.r1-in.*'
+    opts: '--molecules 1 --threshold 2'
+  - file: 'data/Uhse_et_al.2018/expB.r1-out.*'
+    opts: '--molecules 1 --threshold 5'
+  - file: 'data/Uhse_et_al.2018/expB.r2-out.*'
+    opts: '--molecules 1 --threshold 5'
+  - file: 'data/Uhse_et_al.2018/expB.r3-out.*'
+    opts: '--molecules 1 --threshold 9'
+  - file: 'data/Uhse_et_al.2018/*'
+    opts: '--molecules 1 --threshold 1'
+  - file: '*'
+    opts: '--molecules 1 --threshold 2'

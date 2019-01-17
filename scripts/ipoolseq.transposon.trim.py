@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# trim.tag.py, Copyright 2016, 2017 Florian G. Pflug
+# ipoolseq.transposon.trim.py, Copyright 2016, 2017, 2018 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #
@@ -19,33 +19,40 @@
 
 # *****************************************************************************
 # Implements "UMI extraction & technical sequence removal"
-# ./trim.tag.py <cpu cores> <in read1> <in read2> <out read1> <out read2>
+# ./ipoolseq.transposon.trim.py <cpu cores> <in read1> <in read2> <out read1> <out read2>
 # Input and output files are read/written as gzip-compressed FastQ files
 # *****************************************************************************
 import sys
 import regex
-import itertools
 import io
 import gzip
 import string
-import distance
 import pprint
 import signal
 import multiprocessing
+import os
 from copy import copy
-from recordtype import recordtype
+from namedlist import namedlist
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
-DNA_REVCOMP = string.maketrans("ACGT", "TGCA")
+# Reverse-complement a sequence
+DNA_REVCOMP = str.maketrans("ACGT", "TGCA")
 def revcomp(s):
   return s.translate(DNA_REVCOMP)[::-1]
 
+# Replace A,C,G,T in a string with a pattern that allows either that letter or N
 ALLOW_N_PATTERN = regex.compile('([ACGT])', regex.V1)
 def allow_N(s):
   return ALLOW_N_PATTERN.sub('[\\1N]', s)
 
-def allow_partial(s):
-  return ('($|'.join(list(s)) + (')' * (len(s) - 1)))
+# Compute the hamming distance between two sequences of the same length
+def hamming_distance(s1, s2):
+  if len(s1) != len(s2):
+    raise RuntimeError("hamming_distance required sequences with the same length, but give %d and %d characters" % (len(s1), len(s2)))      
+  if len(s1) == 0:
+    return 0;
+  d = sum(ch1 != ch2 for ch1,ch2 in zip(s1, s2))
+  return float(d) / len(s1)
 
 # *** Patterns used to trim read 1 and read2.
 #
@@ -71,21 +78,19 @@ TRIM_R1 = [ 'AGATGTGTATAAGAGACAG' ]
 TRIM_R2 = [ 'CTGTGGTATCCTGTGGCGATC', 'CTGTGGTATCCTGTGGCGTGAGTGGC' ]
 TRIM_MAX_MM = 4
 TRIM_MAX_5PFILLER = 1
+Ri_USE_BARCODE = [ True, False ]
 R1_PATTERN = regex.compile('^(?P<trim>(?P<i5p>[ACGTN]{0,%d})(?P<bc>[AGCT]{12})(%s))(?P<seq>[ACGTN]*)$' % (
   TRIM_MAX_5PFILLER,
-  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, allow_N(t), TRIM_MAX_MM) for i, t in enumerate(TRIM_R1))
+  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R1))
 ), regex.BESTMATCH | regex.V1)
 R2_PATTERN = regex.compile('^(?P<trim>(?P<i5p>[ACGTN]{0,%d})(%s))(?P<seq>[ACGTN]*)$' % (
   TRIM_MAX_5PFILLER,
-  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, allow_N(t), TRIM_MAX_MM) for i, t in enumerate(TRIM_R2))
+  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R2))
 ), regex.BESTMATCH | regex.V1)
 Ri_PATTERN = [ R1_PATTERN, R2_PATTERN ]
 R2_PATTERN_RC = regex.compile("%s" % (
   "|".join('(?P<t%d>(%s){s<=%d})' % (i, revcomp(t), TRIM_MAX_MM) for i, t in enumerate(TRIM_R2))
 ), regex.BESTMATCH | regex.V1)
-#R1_PATTERN = regex.compile('^(?P<trim>(?P<bc>[AGCT]{12})(%s){s<=%d})(?P<seq>[ACGTN]*)$' % (allow_N(TRIM_R1), TRIM_MAX_MM), regex.V1)
-#R2_PATTERN = regex.compile('^(?P<trim>(?P<t1>%s){s<=%d}|(?P<t2>%s){s<=%d})(?P<seq>[ACGTN]*)$' % (allow_N(TRIM_R2[0]), R2_MISSMATCHES, allow_N(TRIM_R2[1]), R2_MISSMATCHES), regex.V1)
-#R2_PATTERN_RC = regex.compile('(?P<t1>%s){s<=%d}|(?P<t2>%s){s<=%d}' % (revcomp(TRIM_R2[0]), TRIM_MAX_MM, revcomp(TRIM_R2[1]), TRIM_MAX_MM), regex.BESTMATCH | regex.V1)
 
 # *** Overlap detection.
 # The last OVERLAP_SEED_LENTH bases from each read and searched for in the mate, allowing
@@ -100,7 +105,7 @@ OVERLAP_IDENTITY=0.9
 NAME_PATTERN = regex.compile('^(?P<bn>.*)/[12]$', regex.V1)
 
 # Holds the statistics collected while processings pairs
-Stats = recordtype('Stats', 'invalid_r1 invalid_r2 emptymate overlap', default=0)
+Stats = namedlist('Stats', 'invalid_r1 invalid_r2 no_genomic overlap', default=0)
 
 # Default
 DEBUG = False
@@ -237,7 +242,7 @@ def align_if_similar(r, r_putative, stats):
   if r_putative.is_aligned():
     # Extract overlapping region from both reads, and compare their hamming distance.
     r_putative.trim_3p_overhangs()
-    if distance.hamming(r_putative.overlap(0), revcomp(r_putative.overlap(1)), normalized=True) <= OVERLAP_IDENTITY:
+    if hamming_distance(r_putative.overlap(0), revcomp(r_putative.overlap(1))) <= OVERLAP_IDENTITY:
       # Actual overlap, update r's alignment information
       r.align(0, 0, r_putative.aligned_to(0, 0))
       stats.overlap += 1
@@ -303,7 +308,7 @@ def process(input):
   for i in [0, 1]:
     p[i] = Ri_PATTERN[i].match(r.seq(i)) if Ri_PATTERN[i] else None
     if p[i] != None:
-      if use[i]:
+      if Ri_USE_BARCODE[i]:
         bc.append(p[i].group('bc'))
       r.trim_5p(i, len(p[i].group('trim')))
     else:
@@ -324,69 +329,80 @@ def process(input):
 
   # Remove 3' overhangs
   r.trim_3p_overhangs()
-
-  # XXX: Deal with empty reads!!! Replace with a single N
+  
+  # If both mates are empty, drop them
+  if r.len(0) == 0 and r.len(1) == 0:
+    stats.no_genomic += 1
+    return (stats, None, None)
+  
   # Return transformed read pair 
-  return (stats, ("%s|%s/1" % (r_name, ":".join(bc)), r.seq(0), r.qual(0)),
-                 ("%s|%s/2" % (r_name, ":".join(bc)), r.seq(1), r.qual(1)))
+  return (stats, ("%s_%s/1" % (r_name, ":".join(bc)), r.seq(0), r.qual(0)),
+                 ("%s_%s/2" % (r_name, ":".join(bc)), r.seq(1), r.qual(1)))
 
 def init_worker():
   signal.signal(signal.SIGINT, signal.SIG_IGN)
     
 if __name__ == '__main__':
   # Command-line arguments
-  cores = int(sys.argv[1])
-  ifile1 = sys.argv[2]
-  ifile2 = sys.argv[3]
-  ofile1 = sys.argv[4]
-  ofile2 = sys.argv[5]
-  use = [ True, False ]
-  print >> sys.stderr, "reading from %s and %s, writing to %s and %s, using %d cores" % (ifile1, ifile2, ofile1, ofile2, cores)
+  cores = int(os.environ.get('THREADS', '1'))
+  ifile1 = sys.argv[1]
+  ifile2 = sys.argv[2]
+  ofile1 = sys.argv[3]
+  ofile2 = sys.argv[4]
+  print("reading from %s and %s, writing to %s and %s, using %d core(s)" % (ifile1, ifile2, ofile1, ofile2, cores), file=sys.stderr)
 
   # Creater workers
   pool = multiprocessing.Pool(cores, init_worker)
   try:
     # Open input files
-    input1 = FastqGeneralIterator(gzip.open(ifile1, 'rb'))
-    input2= FastqGeneralIterator(gzip.open(ifile2, 'rb'))
+    input1 = FastqGeneralIterator(gzip.open(ifile1, 'rt'))
+    input2= FastqGeneralIterator(gzip.open(ifile2, 'rt'))
 
     # Open output files (separate ones for "first" and "second" reads).
-    output1 = io.BufferedWriter(gzip.open(ofile1, 'wb', compresslevel=1), buffer_size=100) #1024*1024)
-    output2 = io.BufferedWriter(gzip.open(ofile2, 'wb', compresslevel=1), buffer_size=100) #1024*1024)
+    output1 = gzip.open(ofile1, 'wt', compresslevel=6)
+    output2 = gzip.open(ofile2, 'wt', compresslevel=6)
 
-    # Scan input files (separate ones for "first" and "second" reads).
-    # The loop iterates over both in parallel. Each read is represented
-    # by a triple (name, bases, qualities).
+    # Prepare read pair processing and logging
     written = 0
     skipped = 0
     index = 0
     stats = Stats()
     def log():
-      print >> sys.stderr, "%d pairs read" % (written+skipped)
-      print >> sys.stderr, "%d (%.2f%%) of pairs did overlap" % (stats.overlap, float(100 * stats.overlap) / float(written+skipped))
+      print("%d pairs read" % (written+skipped), file=sys.stderr)
+      print("%d (%.2f%%) of pairs did overlap by at least %d bases" % (stats.overlap, float(100 * stats.overlap) / float(written+skipped), OVERLAP_SEED_LENGTH), file=sys.stderr)
       if R1_PATTERN:
-        print >> sys.stderr, "%d (%.2f%%) of pairs contains invalid 1st read" % (stats.invalid_r1, float(100 * stats.invalid_r1) / float(written+skipped))
+        print("%d (%.2f%%) of pairs contained invalid 1st read" % (stats.invalid_r1, float(100 * stats.invalid_r1) / float(written+skipped)), file=sys.stderr)
       if R2_PATTERN:
-        print >> sys.stderr, "%d (%.2f%%) of pairs contains invalid 2nd read" % (stats.invalid_r2, float(100 * stats.invalid_r2) / float(written+skipped))
-      print >> sys.stderr, "%d (%.2f%%) of pairs ended up with an empty mate after trimming" % (stats.emptymate, float(100 * stats.emptymate) / float(written+skipped))
-      print >> sys.stderr, "%d (%.2f%%) of pairs written to %s and %s" % (written, float(100 * written) / float(written+skipped), ofile1, ofile2)
-      print >> sys.stderr, "%d (%.2f%%) of pairs skipped" % (skipped, float(100 * skipped) / float(written+skipped))
-    for output in pool.imap(process, itertools.izip(input1, input2), chunksize=8192):
-    #for output in map(process, itertools.izip(input1, input2)):
+        print("%d (%.2f%%) of pairs contained invalid 2nd read" % (stats.invalid_r2, float(100 * stats.invalid_r2) / float(written+skipped)), file=sys.stderr)
+      print("%d (%.2f%%) of pairs contained no genomic sequence" % (stats.no_genomic, float(100 * stats.no_genomic) / float(written+skipped)), file=sys.stderr)
+      print("%d (%.2f%%) of pairs written to %s and %s" % (written, float(100 * written) / float(written+skipped), ofile1, ofile2), file=sys.stderr)
+      print("%d (%.2f%%) of pairs skipped" % (skipped, float(100 * skipped) / float(written+skipped)), file=sys.stderr)
+      sys.stderr.flush()
+    
+    # Process read pairs. Each read is a triple (name, bases, qualities)
+    for output in pool.imap(process, zip(input1, input2), chunksize=8192):
+    #for output in map(process, zip(input1, input2)):
       # Split
       stats_delta, r1, r2 = output
       
       # Update stats
-      stats.emptymate += stats_delta.emptymate
       stats.overlap += stats_delta.overlap
       stats.invalid_r1 += stats_delta.invalid_r1
       stats.invalid_r2 += stats_delta.invalid_r2
+      stats.no_genomic += stats_delta.no_genomic
       
       # Write trimmed reads to output files
+      # Instead of empty reads, we write a single 'N' base and '!' quality
       if r1 != None and r2 != None:
         written += 1
-        output1.write("@%s\n%s\n+\n%s\n" % r1)
-        output2.write("@%s\n%s\n+\n%s\n" % r2)
+        if len(r1[1]) > 0:
+          output1.write("@%s\n%s\n+\n%s\n" % r1)
+        else:
+          output1.write("@%s\nN\n+\n!\n" % r1[0])
+        if len(r2[1]) > 0:
+          output2.write("@%s\n%s\n+\n%s\n" % r2)
+        else:
+          output2.write("@%s\nN\n+\n!\n" % r2[0])
       else:
         skipped += 1
 
