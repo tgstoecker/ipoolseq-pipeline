@@ -1,0 +1,5 @@
+.snakemake/
+sge/
+env
+data/Uhse_et_al.2018
+scripts/__pycache__
