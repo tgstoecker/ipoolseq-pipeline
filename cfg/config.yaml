@@ -1,6 +1,6 @@
 trimmomatic:
   - file: '*'
-    opts: 'ILLUMINACLIP:data/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
+    opts: 'ILLUMINACLIP:cfg/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
 
 reference_genome:
   - file: 'data/{dir}/{lib}'
