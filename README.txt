@@ -28,12 +28,12 @@ technical sequences from the reads, maps them to the U. maydis genome, and
 counts the number of UMIs per insertional knockout. The number of cores (8)
 should be adjusted to the number of cores available.
 
-  snakemake --cores 8 data/Uhse_et_al.2018/exp{A,B}-r{1,2,3}.{in,out}.count.tab
+  snakemake --cores 8 data/Uhse_et_al.2018/exp{A,B}.r{1,2,3}.da.html
 
 More Information
 ----------------
 
-See Supplementary Information S1 Text "iPool-Seq Analysis Pipeline".
+See "iPool-Seq Analysis Pipeline" in docs/
 
 References
 ----------
