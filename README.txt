@@ -1,14 +1,14 @@
 Installing Dependencies
 -----------------------
 
-The file "conda.reqs" defines a conda[1] environment that provides all programs
+The file "ipoolseq.yaml" defines a conda[1] environment that provides all programs
 necessary for running the iPool-Seq analysis pipeline. After installing conda
-(see https://conda.io), a conda environment can be created with
+(see https://conda.io), a conda environment called ipoolseq can be created with
 
-  conda create -n ipoolseq -c defaults -c conda-forge -c bioconda --file conda.reqs
+  conda env create --file ipoolseq.yaml
 
-Remember that (as all conda environments), this environment must than be activ-
-ated before it can be used by doing
+Remember that (as all conda environments), this environment must, before it
+can be used, be activated for the current terminal session by doing
 
   conda activate ipoolseq
 
