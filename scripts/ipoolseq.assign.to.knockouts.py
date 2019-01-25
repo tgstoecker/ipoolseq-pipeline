@@ -32,8 +32,6 @@ from BCBio import GFF
 from collections import namedtuple
 from collections import defaultdict
 
-READNAME_PATTERN = re.compile('^(.*)\|([ACGTN]{12})(:([ACGTN]{12}))?$')
-
 FEATURE_BOUNDARIES_FUZZ = 10
 FEATURE_FLANK_LENGTH = 1000
 
@@ -117,24 +115,6 @@ for read in input.fetch(until_eof=True):
     mate, mate_placeholder = mates[read.query_name]
     del mates[read.query_name]
     start, end = min(mate.reference_start, start), max(mate.reference_end, end)
-
-  # Move RMID from read name to XT tag.
-  m = READNAME_PATTERN.match(read.query_name)
-  if m is None:
-    read.query_name = m
-    rmid1, rmid2 = "%d-%d" % (start, end), None
-  else:
-    read.query_name = m.group(1)
-    if mate is not None:
-      mate.query_name = m.group(1)
-    rmid1, rmid2 = m.group(2), m.group(4)
-  swapped = 0 if (rmid2 is None) or (rmid1 < rmid2) else 1 if rmid1 > rmid2 else None
-  rmid = rmid1 if rmid2 is None else ":".join(sorted([rmid1, rmid2]))
-  read.set_tag(tag='XT', value=rmid, value_type='Z', replace=True)
-  read.set_tag(tag='XS', value=swapped, value_type='i', replace=True)
-  if mate is not None:
-    mate.set_tag(tag='XT', value=rmid, value_type='Z', replace=True)
-    mate.set_tag(tag='XS', value=swapped, value_type='i', replace=True)
 
   # Find knockouts whose left flank coincides with the fragment's end,
   # or whose right flank coincides with the fragment's start. Knockout boundaries
