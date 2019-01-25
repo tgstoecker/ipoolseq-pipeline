@@ -66,7 +66,7 @@ rule adapter_readthrough_trim_pe:
 		r1="data/{dir}/{lib}.tom.1.fq.gz",
 		r2="data/{dir}/{lib}.tom.2.fq.gz"
 	params:
-		opts=config_options('trimmomatic'),
+		opts=config_options('trimmomatic', required=True),
 		scratch=default_scratch
 	threads: 16
 	log:

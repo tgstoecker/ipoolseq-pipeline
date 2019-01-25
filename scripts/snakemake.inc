@@ -11,7 +11,7 @@ def strip_ext(path, ext):
 	else:
 		return path[:len(path)-len(ext)]
 
-def get_options(rule, input=None, files=None, wildcards=None):
+def get_options(rule, input=None, files=None, wildcards=None, required=False):
 	try:
 		if input is not None:
 			if files is not None or wildcards is not None:
@@ -52,7 +52,10 @@ def get_options(rule, input=None, files=None, wildcards=None):
 					return e['opts']
 				else:
 					return expand(e['opts'], **wildcards._asdict())[0]
-		raise RuntimeError("CFGFILE: No matching 'files' specifiction for rule %s and file %s" % (rule, file))
+		if required:
+			raise RuntimeError("CFGFILE: No matching 'files' specifiction for rule %s and file %s" % (rule, file))
+		else:
+			return ''
 	except Exception as e:
 		raise
 #		print("WARNING: get_options for %s failed with: %s" % (rule, str(e)), file=sys.stderr)
@@ -60,11 +63,11 @@ def get_options(rule, input=None, files=None, wildcards=None):
 #		sys.stderr.flush()
 
 
-def config_options(rule):
-	return lambda wildcards, input: get_options(rule, input=input)
+def config_options(rule, required=False):
+	return lambda wildcards, input: get_options(rule, input=input, required=required)
 
 def config_input_file(rule, related_inputs, stripext="", ext=""):
-	return lambda wildcards : strip_ext(get_options(rule, files=related_inputs, wildcards=wildcards), stripext) + ext
+	return lambda wildcards : strip_ext(get_options(rule, files=related_inputs, wildcards=wildcards, required=True), stripext) + ext
 
 def get_scratch(output):
 	if len(output) == 1:
