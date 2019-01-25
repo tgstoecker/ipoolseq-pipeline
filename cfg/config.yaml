@@ -18,14 +18,10 @@ ngm:
 
 trumicount:
   - file: 'data/Uhse_et_al.2018/expB.r1-in.*'
-    opts: '--molecules 1 --threshold 2'
+    opts: '--threshold 2'
   - file: 'data/Uhse_et_al.2018/expB.r1-out.*'
-    opts: '--molecules 1 --threshold 5'
+    opts: '--threshold 5'
   - file: 'data/Uhse_et_al.2018/expB.r2-out.*'
-    opts: '--molecules 1 --threshold 5'
+    opts: '--threshold 5'
   - file: 'data/Uhse_et_al.2018/expB.r3-out.*'
-    opts: '--molecules 1 --threshold 9'
-  - file: 'data/Uhse_et_al.2018/*'
-    opts: '--molecules 1 --threshold 1'
-  - file: '*'
-    opts: '--molecules 1 --threshold 2'
+    opts: '--threshold 9'

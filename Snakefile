@@ -163,6 +163,7 @@ rule trumicount_pe:
 		"  --output-plot {output.plot:q}\\\n"
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
+                "  --molecules 1\\\n"
 		"  {params.opts}" #params.opts can contain MULTPLE options, hence don't quote
 
 rule differential_abundance:
