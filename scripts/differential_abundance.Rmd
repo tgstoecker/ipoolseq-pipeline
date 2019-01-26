@@ -40,7 +40,7 @@ NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
 # Load UMI count tables produced by TRUmiCount
 load.trumicount.output <- function(file) {
   message("Loading TRUmiCount results from ", file)
-  t <- data.table(read.table(file, header=TRUE))
+  t <- data.table(read.table(file, header=TRUE, sep='\t'))
   # Make sure there are exactly two rows per knockout, plus one for 'ambiguous' and 'unmatched'
   allgenes <- data.table(gene=c(paste0(knockouts$Name, ':5p'),
                                 paste0(knockouts$Name, ':3p'),
