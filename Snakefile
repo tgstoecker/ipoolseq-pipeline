@@ -24,13 +24,13 @@ rule download_uhse_et_al:
 		replicate="1|2|3",
 		pool="in|out"
 	shell:
-		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}'; "
-		"fi;"
-		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';"
-		"echo \"Downloading $URL into {output}\";"
+		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}';\n"
+		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}';\n"
+		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}';\n"
+		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}';\n"
+		"fi;\n"
+		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
+		"echo \"Downloading $URL into {output}\";\n"
 		"curl -o {output:q} \"$URL\""
 
 rule bam_to_fqgz_pe:
@@ -46,17 +46,23 @@ rule bam_to_fqgz_pe:
 	log:
 		"data/{dir}/{lib}.bam2fqgz.log"
 	shell:
-		"exec > >(tee {log:q}) 2>&1;"
-		"set -e; set -o pipefail;"
-		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";"
-		"samtools fastq -c1 -1 {output.r1:q} -2 {output.r2:q} {input:q};"
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"set -e; set -o pipefail;\n"
+		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";\n"
+		"samtools fastq -c1\\\n"
+		"  -1 {output.r1:q}\\\n"
+		"  -2 {output.r2:q}\\\n"
+		"  {input:q};"
 
 rule bam_idx:
 	"""Creates an index for a BAM file
 	"""
 	input:	"data/{dir}/{lib}.bam"
 	output:	"data/{dir}/{lib}.bai"
-	shell:	"samtools index {input:q} {output:q}"
+	shell:
+		"samtools index\\\n"
+		"  {input:q}\\\n"
+		"  {output:q}"
 
 rule adapter_readthrough_trim_pe:
 	"""Trims read-throughs into the adapter on the other end using Trimmomatic
@@ -76,9 +82,14 @@ rule adapter_readthrough_trim_pe:
 	log:
 		"data/{dir}/{lib}.tom.log"
 	shell:
-		"exec > >(tee {log:q}) 2>&1;"
-		"export SCRATCH={params.scratch:q}; export THREADS={threads};"
-		"scripts/trimmomatic_pe.sh {input.r1:q} {input.r2:q} {output.r1:q} {output.r2:q} {params.opts:q}"
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
+		"scripts/trimmomatic_pe.sh\\\n"
+		"  {input.r1:q}\\\n"
+		"  {input.r2:q}\\\n"
+		"  {output.r1:q}\\\n"
+		"  {output.r2:q}\\\n"
+		"  {params.opts:q}"
 
 ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
 
@@ -94,13 +105,18 @@ rule ipoolseq_transposon_trim_pe:
 	output:
 		r1="data/{dir}/{lib}.trim.1.fq.gz",
 		r2="data/{dir}/{lib}.trim.2.fq.gz"
+	priority: 1
 	threads: 16
 	log:
 		"data/{dir}/{lib}.trim.log"
 	shell:
-		"exec > >(tee {log:q}) 2>&1;"
-		"export THREADS={threads};"
-		"scripts/ipoolseq.transposon.trim.py {input.r1:q} {input.r2:q} {output.r1:q} {output.r2:q}"
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"export THREADS={threads};\n"
+		"scripts/ipoolseq.transposon.trim.py\\\n"
+		"  {input.r1:q}\\\n"
+		"  {input.r2:q}\\\n"
+		"  {output.r1:q}\\\n"
+		"  {output.r2:q}"
 
 ruleorder: ipoolseq_transposon_trim_pe > bam_to_fqgz_pe
 
@@ -122,9 +138,15 @@ rule map_pe:
 		scratch=default_scratch
 	threads: 32
 	shell:
-		"exec > >(tee {log:q}) 2>&1;"
-		"export SCRATCH={params.scratch:q}; export THREADS={threads};"
-		"scripts/ngm_pe.sh {input.ref:q} {input.r1:q} {input.r2:q} {output.bam:q} {output.bai:q} {params.opts:q}"
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
+		"scripts/ngm_pe.sh\\\n"
+		"  {input.ref:q}\\\n"
+		"  {input.r1:q}\\\n"
+		"  {input.r2:q}\\\n"
+		"  {output.bam:q}\\\n"
+		"  {output.bai:q}\\\n"
+		"  {params.opts:q}"
 
 rule ipoolseq_assign_to_knockouts_pe:
 	"""Assign the mapped reads to the individual KO strains
@@ -141,8 +163,11 @@ rule ipoolseq_assign_to_knockouts_pe:
 	output:	"data/{dir}/{lib}.assign.bam"
 	log:	"data/{dir}/{lib}.assign.log"
 	shell:
-		"exec > >(tee {log:q}) 2>&1;"
-		"scripts/ipoolseq.assign.to.knockouts.py {input.gff:q} {input.bam:q} {output:q}"
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"scripts/ipoolseq.assign.to.knockouts.py\\\n"
+		"  {input.gff:q}\\\n"
+		"  {input.bam:q}\\\n"
+		"  {output:q}"
 
 rule trumicount_pe:
 	"""Computes the number of UMIs per flank (5' and 3') of each of the knockouts
