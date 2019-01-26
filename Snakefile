@@ -14,16 +14,20 @@ rule simulate_trumicount_output:
 	script:	"scripts/simulate_trumicount_output.R"
 
 rule download_uhse_et_al:
-	output:	"data/Uhse_et_al.2018/exp{experiment}-r{replicate}.{pool}.bam"
+	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
 	params:
 		pool="{pool}",
 		experiment="{experiment}",
 		replicate="{replicate}"
+	wildcard_constraints:
+		experiment="A|B",
+		replicate="1|2|3",
+		pool="in|out"
 	shell:
-		"if   [[ '{params.pool}' == 'input'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'input'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'output' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}'; "
-		"elif [[ '{params.pool}' == 'output' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}'; "
+		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}'; "
+		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}'; "
 		"fi;"
 		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';"
 		"echo \"Downloading $URL into {output}\";"
@@ -76,6 +80,8 @@ rule adapter_readthrough_trim_pe:
 		"export SCRATCH={params.scratch:q}; export THREADS={threads};"
 		"scripts/trimmomatic_pe.sh {input.r1:q} {input.r2:q} {output.r1:q} {output.r2:q} {params.opts:q}"
 
+ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
+
 rule ipoolseq_transposon_trim_pe:
 	"""Trims the iPoolSeq-specific technical sequences (including UMIs), append the UMI to the read name
 	
@@ -95,6 +101,8 @@ rule ipoolseq_transposon_trim_pe:
 		"exec > >(tee {log:q}) 2>&1;"
 		"export THREADS={threads};"
 		"scripts/ipoolseq.transposon.trim.py {input.r1:q} {input.r2:q} {output.r1:q} {output.r2:q}"
+
+ruleorder: ipoolseq_transposon_trim_pe > bam_to_fqgz_pe
 
 rule map_pe:
 	"""Maps the (trimmed) reads to the genome
