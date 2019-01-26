@@ -29,6 +29,10 @@ sig.stars <- function(p) {
                 ifelse(p == 0, "*****",
                        strrep("*", pmin(ceiling(-log10(pp)*(1+.Machine$double.eps))-1, 5)))))
 }
+
+make_link <- function(path) {
+  paste0('[', path, '](', path, ')')
+}
 ```
 
 ```{r load}
@@ -83,11 +87,10 @@ knitr::kable(data.table(kind=c("knockouts",
                                "input pool (pre-infection) knockout abundances ",
                                "output pool (post-infection) knockout abundances",
                                "log2 fold changes & significance"),
-                        type=c("read", "read", "read", "written"),
-                        file=c(snakemake@input$gff,
-                               snakemake@input$pool_in,
-                               snakemake@input$pool_out,
-                               snakemake@output$table),
+                        file=c(make_link(snakemake@input$gff),
+                               make_link(snakemake@input$pool_in),
+                               make_link(snakemake@input$pool_out),
+                               make_link(snakemake@output$table)),
                         report=c("",
                                  paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in), ")"),
                                  paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out), ")"),
