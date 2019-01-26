@@ -78,7 +78,7 @@ counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))
 
 # 1. Files
 
-```{r}
+```{r table_files}
 knitr::kable(data.table(kind=c("knockouts",
                                "input pool (pre-infection) knockout abundances ",
                                "output pool (post-infection) knockout abundances",
@@ -100,14 +100,16 @@ knitr::kable(data.table(kind=c("knockouts",
 
 ### Input pool
 
-```{r}
-knitr::kable(read.table(snakemake@input$stats_in, header=TRUE, sep='\t'))
+```{r table_stats_in}
+message("Loading statistics from ", snakemake@input$stats_in)
+knitr::kable(read.table(snakemake@input$stats_in, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE))
 ```
 
 ### Output pool
 
-```{r}
-knitr::kable(read.table(snakemake@input$stats_out, header=TRUE, sep='\t'))
+```{r table_stats_out}
+message("Loading statistics from ", snakemake@input$stats_out)
+knitr::kable(read.table(snakemake@input$stats_out, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE))
 ```
 
 For the distribution of the number of reads per UMI, see the *TRUmiCount reports* linked in the list of files above.
