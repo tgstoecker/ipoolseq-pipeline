@@ -199,6 +199,25 @@ rule trumicount_pe:
                 "  --molecules 1\\\n"
 		"  {params.opts}" #params.opts can contain MULTPLE options, hence don't quote
 
+rule read_stats:
+	"""Collects statistics about the number of reads and UMIs remaing after each step
+	"""
+	input:
+		raw="data/{dir}/{lib}.bam",
+		map="data/{dir}/{lib}.map.bam",
+		assign="data/{dir}/{lib}.assign.bam",
+		count="data/{dir}/{lib}.count.tab"
+	output:
+		stats="data/{dir}/{lib}.stats.tab"
+	shell:
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"scripts/read_stats.sh\\\n"
+		"  {input.raw:q}\\\n"
+		"  {input.map:q}\\\n"
+		"  {input.assign:q}\\\n"
+		"  {input.count:q}\\\n"
+		"  {output.stats:q}"
+
 rule differential_abundance:
 	"""Compares input (pre-infection) and an output (post-infection) samples for a mutant pool
 
