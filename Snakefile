@@ -230,6 +230,8 @@ rule differential_abundance:
 		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab"),
 		pool_in="data/{dir}/{exp}-in.count.tab",
 		pool_out="data/{dir}/{exp}-out.count.tab",
+		stats_in="data/{dir}/{exp}-in.stats.tab",
+		stats_out="data/{dir}/{exp}-out.stats.tab",
 		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
 		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf"
 	output:

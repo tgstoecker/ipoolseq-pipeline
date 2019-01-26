@@ -98,7 +98,17 @@ knitr::kable(data.table(kind=c("knockouts",
 
 ## Read and UMI count statistics
 
-TODO
+### Input pool
+
+```{r}
+knitr::kable(read.table(snakemake@input$stats_in, header=TRUE, sep='\t'))
+```
+
+### Output pool
+
+```{r}
+knitr::kable(read.table(snakemake@input$stats_out, header=TRUE, sep='\t'))
+```
 
 For the distribution of the number of reads per UMI, see the *TRUmiCount reports* linked in the list of files above.
 
