@@ -237,5 +237,4 @@ rule differential_abundance:
 	output:
 		table="data/{dir}/{exp}.da.tab",
 		html="data/{dir}/{exp}.da.html"
-	log:	"data/{dir}/{exp}.result.log"
 	script:	"scripts/generate_differential_abundance_report.R"
