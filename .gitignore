@@ -1,4 +1,5 @@
 .snakemake/
+sge.*
 sge/
 env
 data/Uhse_et_al.2018
