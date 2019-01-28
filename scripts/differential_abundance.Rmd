@@ -99,6 +99,18 @@ knitr::kable(data.table(kind=c("knockouts",
 
 # 2. Quality Control
 
+## Sequencing and Trimming
+
+FastQC reports for the trimmed reads
+```{r table_fastqc}
+knitr::kable(data.table(
+  `Read 1`=c(paste0("[Input pool](", basename(snakemake@input$fastqc_html_in_r1), ")"),
+             paste0("[output pool](", basename(snakemake@input$fastqc_html_out_r1), ")")),
+  `Read 2`=c(paste0("[Input pool](", basename(snakemake@input$fastqc_html_in_r2), ")"),
+             paste0("[Output pool](", basename(snakemake@input$fastqc_html_out_r2), ")"))
+))
+```
+
 ## Read and UMI count statistics
 
 ### Input pool

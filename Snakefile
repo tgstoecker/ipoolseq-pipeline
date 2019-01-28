@@ -118,6 +118,23 @@ rule ipoolseq_transposon_trim_pe:
 		"  {output.r1:q}\\\n"
 		"  {output.r2:q}"
 
+rule fastqc_pe:
+	input:	"data/{dir}/{lib}.trim.{ri}.fq.gz",
+	output: "data/{dir}/{lib}.fastqc.{ri}.html",
+	wildcard_constraints:
+		ri="1|2"
+	priority: 1
+	threads: 16
+	shell:
+		"zcat {input:q}\\\n"
+		"| fastqc\\\n"
+		"  --threads {threads}\\\n"
+		"  --format fastq\\\n"
+		"  --outdir \"$(dirname {output:q})\"\\\n"
+		"  stdin:\"$(basename {output:q})\";\n"
+		"rm {output:q}_fastqc.zip;\n"
+		"mv {output:q}_fastqc.html {output:q};\n"
+
 ruleorder: ipoolseq_transposon_trim_pe > bam_to_fqgz_pe
 
 rule map_pe:
@@ -232,6 +249,10 @@ rule differential_abundance:
 		pool_out="data/{dir}/{exp}-out.count.tab",
 		stats_in="data/{dir}/{exp}-in.stats.tab",
 		stats_out="data/{dir}/{exp}-out.stats.tab",
+		fastqc_html_in_r1="data/{dir}/{exp}-in.fastqc.1.html",
+		fastqc_html_in_r2="data/{dir}/{exp}-in.fastqc.2.html",
+		fastqc_html_out_r1="data/{dir}/{exp}-out.fastqc.1.html",
+		fastqc_html_out_r2="data/{dir}/{exp}-out.fastqc.2.html",
 		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
 		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf"
 	output:

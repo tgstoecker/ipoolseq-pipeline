@@ -5,6 +5,7 @@
 https://repo.anaconda.com/pkgs/r/linux-64/_r-mutex-1.0.0-anacondar_1.tar.bz2
 https://repo.anaconda.com/pkgs/free/linux-64/blas-1.0-mkl.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2018.11.29-ha4d7672_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/noarch/font-ttf-dejavu-sans-mono-2.37-h6964260_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/intel-openmp-2019.1-144.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/libgcc-ng-8.2.0-hdf63c60_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/libgfortran-3.0.0-1.tar.bz2
@@ -30,6 +31,7 @@ https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.1-hfc679d8_2.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/nextgenmap-0.5.5-h2d50403_2.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/openssl-1.0.2p-h14c3975_1002.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pcre-8.41-hfc679d8_3.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/perl-5.26.2-h14c3975_1000.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pixman-0.34.0-h470a237_3.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pthread-stubs-0.4-h470a237_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/xorg-kbproto-1.0.7-h470a237_2.tar.bz2
@@ -85,6 +87,7 @@ https://conda.anaconda.org/conda-forge/linux-64/curl-7.63.0-h74213dd_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/datrie-0.7.1-py36h7b6447c_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/decorator-4.3.0-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/docutils-0.14-py36_1001.tar.bz2
+https://conda.anaconda.org/bioconda/linux-64/fastqc-0.11.8-1.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/filechunkio-1.6-py36_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/ftputil-3.2-py36_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/future-0.17.1-py36_1000.tar.bz2
