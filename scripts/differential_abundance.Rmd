@@ -19,6 +19,10 @@ library(rtracklayer)
 
 source("scripts/ipsmodel.R")
 
+# Output '-' for NA values
+options(knitr.kable.NA = '-')
+
+# Set FDR to 5%
 PLOT.FDR.THRESHOLD <- 0.05
 
 # Convert a p-value into a significance marker
@@ -30,6 +34,7 @@ sig.stars <- function(p) {
                        strrep("*", pmin(ceiling(-log10(pp)*(1+.Machine$double.eps))-1, 5)))))
 }
 
+# Create a Markdown link
 make_link <- function(path) {
   paste0('[', path, '](', path, ')')
 }
@@ -83,10 +88,10 @@ counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))
 # 1. Files
 
 ```{r table_files}
-knitr::kable(data.table(kind=c("knockouts",
-                               "input pool (pre-infection) knockout abundances ",
-                               "output pool (post-infection) knockout abundances",
-                               "log2 fold changes & significance"),
+knitr::kable(data.frame(row.names=c("knockouts",
+                                    "input pool (pre-infection) knockout abundances ",
+                                    "output pool (post-infection) knockout abundances",
+                                    "log2 fold changes & significance"),
                         file=c(snakemake@input$gff,
                                make_link(basename(snakemake@input$pool_in)),
                                make_link(basename(snakemake@input$pool_out)),
@@ -103,28 +108,39 @@ knitr::kable(data.table(kind=c("knockouts",
 
 FastQC reports for the trimmed reads
 ```{r table_fastqc}
-knitr::kable(data.table(
-  `Read 1`=c(paste0("[Input pool](", basename(snakemake@input$fastqc_html_in_r1), ")"),
-             paste0("[output pool](", basename(snakemake@input$fastqc_html_out_r1), ")")),
-  `Read 2`=c(paste0("[Input pool](", basename(snakemake@input$fastqc_html_in_r2), ")"),
-             paste0("[Output pool](", basename(snakemake@input$fastqc_html_out_r2), ")"))
+knitr::kable(data.frame(
+  row.names=c("Read 1", "Read 2"),
+  `Input pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_r1), ")"),
+                 paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_r2), ")")),
+  `Output pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_r1), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_r2), ")")),
+  check.names=FALSE
 ))
 ```
 
 ## Read and UMI count statistics
 
-### Input pool
-
+The number of read pairs after each of the analysis steps
 ```{r table_stats_in}
 message("Loading statistics from ", snakemake@input$stats_in)
-knitr::kable(read.table(snakemake@input$stats_in, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE))
-```
-
-### Output pool
-
-```{r table_stats_out}
+stats_in <- read.table(snakemake@input$stats_in, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
 message("Loading statistics from ", snakemake@input$stats_out)
-knitr::kable(read.table(snakemake@input$stats_out, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE))
+stats_out <- read.table(snakemake@input$stats_out, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+
+stopifnot(all(stats_in$`After Step` == stats_out$`After Step`))
+stats <- data.frame(row.names=stats_in$`After Step`,
+                    `#Reads Input`=stats_in$`#Reads`,
+                    `#UMIs Input`=stats_in$`#UMIs`,
+                    `#Reads Output`=stats_out$`#Reads`,
+                    `#UMIs Output`=stats_out$`#UMIs`,
+                    check.names=FALSE)
+for(c in c('#Reads Input', '#UMIs Input', '#Reads Output', '#UMIs Output')) {
+  stats[[c]] <- ifelse(!is.na(stats[[c]]),
+                       paste0(stats[[c]], " (",
+                              round(100*stats[[c]]/(stats[[c]][min(which(!is.na(stats[[c]])))])), "%)"),
+                       NA)
+}
+knitr::kable(stats)
 ```
 
 For the distribution of the number of reads per UMI, see the *TRUmiCount reports* linked in the list of files above.
