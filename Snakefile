@@ -226,8 +226,10 @@ rule read_stats:
 		count="data/{dir}/{lib}.count.tab"
 	output:
 		stats="data/{dir}/{lib}.stats.tab"
+	threads: 8
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
+		"export THREADS={threads};\n"
 		"scripts/read_stats.sh\\\n"
 		"  {input.raw:q}\\\n"
 		"  {input.map:q}\\\n"

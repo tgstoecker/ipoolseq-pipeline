@@ -7,21 +7,24 @@ OUTPUT_STATS="$1"; shift
 
 function bam_fragments() {
 	file="$1"; shift
-	count="$(samtools view $* "$file" | cut -f1 | sort --parallel 4 -S 1G | wc -l)"
+	# Count the number of unique read names (i.e. pairs)
+	count="$(samtools view $* "$file" | cut -f1 | sort --parallel ${THREADS:-1} -S 1G -u | wc -l)"
 	echo $count
 }
 
 function assigned_bam_pattern_fragments() {
 	file="$1"; shift
 	pattern="$1"; shift
-	count="$(samtools view $* "$file" | grep -v "$pattern" | cut -f1 | sort --parallel 4 -S 1G | wc -l)"
+	# Count the number of unique read names (i.e. pairs)
+	count="$(samtools view $* "$file" | grep -v "$pattern" | cut -f1 | sort --parallel ${THREADS:-1} -S 1G -u | wc -l)"
 	echo $count
 }
 
 function assigned_bam_pattern_umis() {
 	file="$1"; shift
 	pattern="$1"; shift
-	count="$(samtools view $* "$file" | grep -v "$pattern" | sed -n 's/^.*_\([ACGTN]*\)\t.*XT:Z:\([^\t].*\).*$/\2-\1/p' | sort -u --parallel 4 -S 1G | wc -l)"
+	# Count the number of unique combinations of XT tag and UMI
+	count="$(samtools view $* "$file" | grep -v "$pattern" | sed -n 's/^.*_\([ACGTN]*\)\t.*XT:Z:\([^\t].*\).*$/\2-\1/p' | sort -u --parallel ${THREADS:-1} -S 1G -u | wc -l)"
 	echo $count
 }
 
