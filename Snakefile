@@ -179,9 +179,12 @@ rule ipoolseq_assign_to_knockouts_pe:
 		gff=config_input_file('knockouts', "data/{dir}/{lib}.assign.bam")
 	output:	"data/{dir}/{lib}.assign.bam"
 	log:	"data/{dir}/{lib}.assign.log"
+	params:
+		opts=config_options('knockout_assignment'),
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"scripts/ipoolseq.assign.to.knockouts.py\\\n"
+		"  {params.opts}\\\n"
 		"  {input.gff:q}\\\n"
 		"  {input.bam:q}\\\n"
 		"  {output:q}"

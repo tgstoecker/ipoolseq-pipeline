@@ -16,6 +16,10 @@ ngm:
   - file: '*'
     opts: '--end-to-end --pair-score-cutoff 0.5 --sensitivity 0.3 --kmer 13 --kmer-skip 0 --skip-save'
 
+knockout_assignment:
+  - file: '*'
+    opts: '--mapping-fuzzyness 10 --max-fragment-length 1000'
+
 trumicount:
   - file: 'data/Uhse_et_al.2018/expB.r1-in.*'
     opts: '--threshold 2'

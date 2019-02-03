@@ -24,6 +24,7 @@
 import pysam
 import re
 import sys
+import argparse
 import itertools
 import copy
 import pysamutils
@@ -32,13 +33,26 @@ from BCBio import GFF
 from collections import namedtuple
 from collections import defaultdict
 
-FEATURE_BOUNDARIES_FUZZ = 10
-FEATURE_FLANK_LENGTH = 1000
-
 # Command-line arguments
-ifile_knockouts = sys.argv[1]
-ifile = sys.argv[2]
-ofile = sys.argv[3]
+parser = argparse.ArgumentParser(description='Assign reads to knockouts')
+parser.add_argument('--mapping-fuzzyness', action='store', type=int,
+                    default=10, help='Assumed mapping fuzziness')
+parser.add_argument('--max-fragment-length', action='store', type=int,
+                    default=1000, help='Maximum fragment length (singleton reads only)')
+parser.add_argument('input_gff', help='Input GFF2 file with KO cassette insertions', nargs=1)
+parser.add_argument('input_bam', help='Input BAM file containing mapped reads', nargs=1)
+parser.add_argument('output_bam', help='Output BAM file for assigned reads', nargs=1)
+args = parser.parse_args()
+ifile_knockouts = args.input_gff[0]
+ifile = args.input_bam[0]
+ofile = args.output_bam[0]
+FEATURE_BOUNDARIES_FUZZ = args.mapping_fuzzyness
+FEATURE_FLANK_LENGTH = args.max_fragment_length
+
+print('Reading knockout list from %s' % ifile_knockouts, file=sys.stderr)
+print('Reading mapped reads from %s' % ifile, file=sys.stderr)
+print('Writing assigned reads to %s' % ofile, file=sys.stderr)
+print('Allowed mapping fuzzyness is +/- %d bp, assumed max. fragment length %d bp' % (FEATURE_BOUNDARIES_FUZZ, FEATURE_FLANK_LENGTH), file=sys.stderr)
 
 # Read knockouts from input GFF file
 Knockout = namedtuple('Knockout', ['name', 'start', 'end', 'strand', 'left', 'right', 'hits'])
