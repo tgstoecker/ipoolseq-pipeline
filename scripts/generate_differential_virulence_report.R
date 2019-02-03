@@ -12,7 +12,7 @@ if (exists("SNAKEMAKE.STANDIN") && get("SNAKEMAKE.STANDIN")) {
   )
 }
 
-rmarkdown::render(input="scripts/differential_abundance.Rmd",
+rmarkdown::render(input="scripts/differential_virulence.Rmd",
                   output_file=basename(snakemake@output$`html`),
                   output_dir=normalizePath(dirname(snakemake@output$`html`)),
                   output_format="html_document",

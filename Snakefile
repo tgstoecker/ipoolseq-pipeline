@@ -240,9 +240,9 @@ rule read_stats:
 		"  {input.count:q}\\\n"
 		"  {output.stats:q}"
 
-rule differential_abundance:
-	"""Compares input (pre-infection) and an output (post-infection) samples for a mutant pool
-
+rule differential_virulence:
+	"""Findes KO strains with higher a lower virulence than the wildtype
+	
 	Produces an HTML report and a table of log2 fold changes of knockout abundances in
 	the output pool relative to a set of known-neutral knockouts (marked with 'Neutral'
 	in the knockout GFF file), and normlized for differences in the knockout abundance
@@ -261,6 +261,6 @@ rule differential_abundance:
 		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
 		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf"
 	output:
-		table="data/{dir}/{exp}.da.tab",
-		html="data/{dir}/{exp}.da.html"
-	script:	"scripts/generate_differential_abundance_report.R"
+		table="data/{dir}/{exp}.dv.tab",
+		html="data/{dir}/{exp}.dv.html"
+	script:	"scripts/generate_differential_virulence_report.R"
