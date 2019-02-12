@@ -1,5 +1,5 @@
 ---
-title: "Differential Abundance"
+title: "Differential Virulence Report"
 output:
   pdf_document: default
   html_document: default

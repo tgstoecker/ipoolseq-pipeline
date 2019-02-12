@@ -17,5 +17,6 @@ rmarkdown::render(input="scripts/differential_virulence.Rmd",
                   output_dir=normalizePath(dirname(snakemake@output$`html`)),
                   output_format="html_document",
                   runtime="static",
+                  intermediates_dir=tempdir(),
                   knit_root_dir=getwd(),
                   clean=TRUE)

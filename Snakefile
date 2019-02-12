@@ -250,7 +250,7 @@ rule differential_virulence:
 	in the input pool
 	"""
 	input:
-		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab"),
+		gff=config_input_file('knockouts', "data/{dir}/{exp}"),
 		pool_in="data/{dir}/{exp}-in.count.tab",
 		pool_out="data/{dir}/{exp}-out.count.tab",
 		stats_in="data/{dir}/{exp}-in.stats.tab",
