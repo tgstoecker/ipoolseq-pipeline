@@ -248,7 +248,7 @@ dependencies:
   - tktable=2.10=h14c3975_0
   - tornado=5.1.1=py36h470a237_0
   - trimmomatic=0.38=1
-  - trumicount=0.9.12=r351_0
+  - trumicount=0.9.13=r351_0
   - umi_tools=0.5.5=py36h470a237_0
   - urllib3=1.12=py36_0
   - wget=1.19.5=h1ad7b7a_0

@@ -48,6 +48,6 @@ function assigned_bam_pattern_umis() {
 	echo -en "$(assigned_bam_pattern_umis "$INPUT_ASSIGN" "XT:Z:(unmatched|ambiguous)" -F4)\\n"
 
 	echo -en "TRUmiCount\\t"
-	echo -en "-\\t"
+	echo -en "$(awk 'BEGIN{n=0;IFS="\t"} ($1!="unmatched"||$1!="ambiguous") {n+=$8} END{print n}' < "$INPUT_COUNT")\\t"
 	echo -en "$(awk 'BEGIN{n=0;IFS="\t"} ($1!="unmatched"||$1!="ambiguous") {n+=$2} END{print n}' < "$INPUT_COUNT")\\n"
 ) | tee "$OUTPUT_STATS"

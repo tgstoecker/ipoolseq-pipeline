@@ -200,7 +200,7 @@ rule trumicount_pe:
 	input:
 		bam="data/{dir}/{lib}.assign.bam",
 		bai="data/{dir}/{lib}.assign.bai"
-	output: table="data/{dir}/{lib}.count.tab",
+	output: counts="data/{dir}/{lib}.count.tab",
 		plot="data/{dir}/{lib}.count.pdf"
 	log:	"data/{dir}/{lib}.count.log"
 	params:
@@ -212,7 +212,8 @@ rule trumicount_pe:
 		"  --input-bam {input.bam:q}\\\n"
 		"  --group-per gene\\\n"
 		"  --cores {threads}\\\n"
-		"  --output-counts {output.table:q}\\\n"
+		"  --include-filter-statistics\\\n"
+		"  --output-counts {output.counts:q}\\\n"
 		"  --output-plot {output.plot:q}\\\n"
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
