@@ -3,7 +3,12 @@ import fnmatch
 import traceback
 from snakemake.io import contains_wildcard, regex
 
-SCRATCH_DIR = os.path.join('/scratch', os.environ['USER'])
+if 'TMPDIR' in os.environ and 'USER' in os.environ:
+	SCRATCH_DIR = os.path.join(os.environ['TMPDIR'], os.environ['USER'])
+elif 'TMPDIR' in os.environ:
+	SCRATCH_DIR = os.environ['TMPDIR']
+else:
+	SCRATCH_DIR = '/tmp'
 
 def strip_ext(path, ext):
 	if not path.endswith(ext):
