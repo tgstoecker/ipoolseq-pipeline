@@ -17,12 +17,8 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
-# *****************************************************************************
-# Implements "UMI extraction & technical sequence removal"
-# ./ipoolseq.transposon.trim.py <cpu cores> <in read1> <in read2> <out read1> <out read2>
-# Input and output files are read/written as gzip-compressed FastQ files
-# *****************************************************************************
 import sys
+import argparse
 import regex
 import io
 import gzip
@@ -34,6 +30,33 @@ import os
 from copy import copy
 from namedlist import namedlist
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
+
+# Command-line arguments
+parser = argparse.ArgumentParser(description='Trim non-genomic sequences')
+parser.add_argument('--cassette-5p', action='store', type=str,
+                    default="CTGTGGTATCCTGTGGCGATC", help="the 5' end of the KO cassette (5' -> 3' on the reverse strand)")
+parser.add_argument('--cassette-3p', action='store', type=str,
+                    default="CTGTGGTATCCTGTGGCGTGAGTGGC", help="the 3' end of the KO cassette (5' -> 3' on the forward strand)")
+parser.add_argument('input_r1', help='Input read 1 in FASTQ format', nargs=1)
+parser.add_argument('input_r2', help='Input read 2 in FASTQ format', nargs=1)
+parser.add_argument('output_r1', help='Input read 1 in FASTQ format', nargs=1)
+parser.add_argument('output_r2', help='Output read 2 in FASTQ format', nargs=1)
+args = parser.parse_args()
+ifile1 = args.input_r1[0]
+ifile2 = args.input_r2[0]
+ofile1 = args.output_r1[0]
+ofile2 = args.output_r2[0]
+CASSETTE_5P = args.cassette_5p
+CASSETTE_3P = args.cassette_3p
+
+CORES = int(os.environ.get('THREADS', '1'))
+print("Reading reads from %s and %s" % (ifile1, ifile2), file=sys.stderr)
+print("Writing reads to %s and %s" % (ofile1, ofile2), file=sys.stderr)
+print("Using %d core(s)" % (CORES), file=sys.stderr)
+print("Cassete 5' End (5'->3' on strand -: %s" % (CASSETTE_5P), file=sys.stderr)
+print("Cassete 3' End (5'->3' on strand +: %s" % (CASSETTE_3P), file=sys.stderr)
+
+# TODO print sequences
 
 # Reverse-complement a sequence
 DNA_REVCOMP = str.maketrans("ACGT", "TGCA")
@@ -75,7 +98,7 @@ def hamming_distance(s1, s2):
 #    seq: The surviving part of the read, i.e. everthing after ||
 # 
 TRIM_R1 = [ 'AGATGTGTATAAGAGACAG' ]
-TRIM_R2 = [ 'CTGTGGTATCCTGTGGCGATC', 'CTGTGGTATCCTGTGGCGTGAGTGGC' ]
+TRIM_R2 = [ CASSETTE_5P, CASSETTE_3P ]
 TRIM_MAX_MM = 4
 TRIM_MAX_5PFILLER = 1
 Ri_USE_BARCODE = [ True, False ]
@@ -343,16 +366,8 @@ def init_worker():
   signal.signal(signal.SIGINT, signal.SIG_IGN)
     
 if __name__ == '__main__':
-  # Command-line arguments
-  cores = int(os.environ.get('THREADS', '1'))
-  ifile1 = sys.argv[1]
-  ifile2 = sys.argv[2]
-  ofile1 = sys.argv[3]
-  ofile2 = sys.argv[4]
-  print("reading from %s and %s, writing to %s and %s, using %d core(s)" % (ifile1, ifile2, ofile1, ofile2, cores), file=sys.stderr)
-
   # Creater workers
-  pool = multiprocessing.Pool(cores, init_worker)
+  pool = multiprocessing.Pool(CORES, init_worker)
   try:
     # Open input files
     input1 = FastqGeneralIterator(gzip.open(ifile1, 'rt'))

@@ -1,7 +1,3 @@
-trimmomatic:
-  - file: '*'
-    opts: 'ILLUMINACLIP:cfg/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
-
 reference_genome:
   - file: 'data/{dir}/{lib}'
     opts: 'cfg/{dir}/reference.fa'
@@ -11,6 +7,14 @@ knockouts:
     opts: 'cfg/Uhse_et_al.2018/knockouts.gff'
   - file: 'data/{dir}/{lib}'
     opts: 'cfg/{dir}/knockouts.gff'
+
+trimmomatic:
+  - file: '*'
+    opts: 'ILLUMINACLIP:cfg/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
+
+trim:
+  - file: '*'
+    opts: '--cassette-5p CTGTGGTATCCTGTGGCGATC --cassette-3p CTGTGGTATCCTGTGGCGTGAGTGGC'
 
 ngm:
   - file: '*'
