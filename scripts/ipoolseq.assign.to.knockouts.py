@@ -17,10 +17,6 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
-# *****************************************************************************
-# Implements "Assignment to mutants"
-# ./assign_to_knockouts.py <gff-file> <input bam> <output bam>
-# *****************************************************************************
 import pysam
 import re
 import sys
