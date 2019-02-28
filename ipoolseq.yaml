@@ -14,6 +14,7 @@ dependencies:
   - bcbiogff=0.6.4=py_1
   - bcftools=1.9=h4da6232_0
   - bcrypt=3.1.4=py36h470a237_0
+  - binutils=2.31=0
   - bioconductor-biobase=2.40.0=r351ha44fe06_1
   - bioconductor-biocgenerics=0.26.0=r351_0
   - bioconductor-biocparallel=1.14.2=r351h26a2512_0
