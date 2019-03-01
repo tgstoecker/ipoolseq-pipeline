@@ -17,4 +17,4 @@ chown dockeruser.dockergroup /ipoolseq-pipeline/.snakemake
 exec runuser \
 	-s /bin/bash -l \
 	-c "exec /entrypoint_dockeruser.sh \$*" \
-	dockeruser /bin/bash $*
+	dockeruser -- /bin/bash $*
