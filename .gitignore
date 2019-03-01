@@ -3,6 +3,8 @@ scripts/__pycache__
 .snakemake/
 tests/*.ctx
 tests/ipoolseq-pipeline.Dockerfile
+tests/*.log
+tests/data
 # Local entries
 sge.*
 sge/
