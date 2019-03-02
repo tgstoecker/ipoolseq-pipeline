@@ -119,12 +119,11 @@ rule ipoolseq_transposon_trim_pe:
 	"""
 	input:
 		r1="data/{dir}/{lib}.tom.1.fq.gz",
-		r2="data/{dir}/{lib}.tom.2.fq.gz"
+		r2="data/{dir}/{lib}.tom.2.fq.gz",
+		fa=config_input_file('cassette', "data/{dir}/{lib}.trim.1.fq.gz")
 	output:
 		r1="data/{dir}/{lib}.trim.1.fq.gz",
 		r2="data/{dir}/{lib}.trim.2.fq.gz"
-	params:
-		opts=config_options('trim'),
 	priority: 1
 	threads: 16
 	log:
@@ -133,7 +132,7 @@ rule ipoolseq_transposon_trim_pe:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
 		"scripts/ipoolseq.transposon.trim.py\\\n"
-		"  {params.opts}\\\n" #params.opts can contain MULTPLE options, hence don't quote
+		"  {input.fa:q}\\\n"
 		"  {input.r1:q}\\\n"
 		"  {input.r2:q}\\\n"
 		"  {output.r1:q}\\\n"

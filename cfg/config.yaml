@@ -12,9 +12,9 @@ trimmomatic:
   - file: '*'
     opts: 'ILLUMINACLIP:cfg/Uhse_et_al.2018.adapters.fa:2:24:15:1:true MINLEN:40'
 
-trim:
-  - file: '*'
-    opts: '--cassette-5p CTGTGGTATCCTGTGGCGATC --cassette-3p CTGTGGTATCCTGTGGCGTGAGTGGC'
+cassette:
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/cassette.fa'
 
 ngm:
   - file: '*'

@@ -30,13 +30,11 @@ import os
 from copy import copy
 from namedlist import namedlist
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
+from Bio import SeqIO
 
 # Command-line arguments
 parser = argparse.ArgumentParser(description='Trim non-genomic sequences')
-parser.add_argument('--cassette-5p', action='store', type=str,
-                    default="CTGTGGTATCCTGTGGCGATC", help="the 5' end of the KO cassette (5' -> 3' on the reverse strand)")
-parser.add_argument('--cassette-3p', action='store', type=str,
-                    default="CTGTGGTATCCTGTGGCGTGAGTGGC", help="the 3' end of the KO cassette (5' -> 3' on the forward strand)")
+parser.add_argument('cassette', help='Fasta file containing 5p and 3p KO cassette sequence', nargs=1)
 parser.add_argument('input_r1', help='Input read 1 in FASTQ format', nargs=1)
 parser.add_argument('input_r2', help='Input read 2 in FASTQ format', nargs=1)
 parser.add_argument('output_r1', help='Input read 1 in FASTQ format', nargs=1)
@@ -46,8 +44,11 @@ ifile1 = args.input_r1[0]
 ifile2 = args.input_r2[0]
 ofile1 = args.output_r1[0]
 ofile2 = args.output_r2[0]
-CASSETTE_5P = args.cassette_5p
-CASSETTE_3P = args.cassette_3p
+cassette = SeqIO.to_dict(SeqIO.parse(args.cassette[0], "fasta"))
+if ('5p' not in cassette) or ('3p' not in cassette):
+  raise RuntimeError('FASTA cassette file must contain sequences named 5p and 3p')
+CASSETTE_5P = cassette['5p'].seq.tostring()
+CASSETTE_3P = cassette['3p'].seq.tostring()
 
 CORES = int(os.environ.get('THREADS', '1'))
 print("Reading reads from %s and %s" % (ifile1, ifile2), file=sys.stderr)
