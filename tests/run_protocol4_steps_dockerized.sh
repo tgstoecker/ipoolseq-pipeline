@@ -6,4 +6,4 @@ PROT4STEPS_CONTAINER=$(docker build -q --file=protocol4_steps.Dockerfile . | tai
 echo "*** Container $PROT4STEPS_CONTAINER contains the up-to-date protocol4 steps"
 
 # Run the pipeline
-docker run --rm $PROT4STEPS_CONTAINER
+docker run --rm -v conda-pkgs:/conda-pkgs $PROT4STEPS_CONTAINER

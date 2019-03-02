@@ -1,4 +1,7 @@
 #!/bin/bash
+# Activate conda
+. /opt/conda/etc/profile.d/conda.sh
+
 # 1a. Download pipeline
 VER=latest-release
 URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
