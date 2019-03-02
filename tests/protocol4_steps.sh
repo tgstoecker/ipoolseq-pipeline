@@ -1,6 +1,7 @@
 #!/bin/bash
 # Activate conda
 . /opt/conda/etc/profile.d/conda.sh
+export USER=user
 
 # 1a. Download pipeline
 VER=latest-release
@@ -18,8 +19,8 @@ set -e
 set -p pipefail
 
 # 2. Add reference, knockouts, libraries
-mkdir data/your_design
-mkdir cfg/your_design
+mkdir -p data/your_design
+mkdir -p cfg/your_design
 cp cfg/Uhse_et_al.2018/reference.fa cfg/your_design/reference.fa
 cp cfg/Uhse_et_al.2018/knockouts.gff cfg/your_design/knockouts.gff
 curl -o data/your_design/your_replicate-in.bam ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR2190337/r4896/in1.bam
