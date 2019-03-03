@@ -20,9 +20,10 @@ set -p pipefail
 
 # 2. Add reference, knockouts, libraries
 mkdir -p data/your_design
-mkdir -p cfg/your_design
+mkdir cfg/your_design
 cp cfg/Uhse_et_al.2018/reference.fa cfg/your_design/reference.fa
 cp cfg/Uhse_et_al.2018/knockouts.gff cfg/your_design/knockouts.gff
+cp cfg/Uhse_et_al.2018/cassette.fa cfg/your_design/cassette.fa
 curl -o data/your_design/your_replicate-in.bam ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR2190337/r4896/in1.bam
 curl -o data/your_design/your_replicate-out.bam ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR2190334/r4896/egb73r1.bam 
 
