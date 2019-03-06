@@ -1,3 +1,16 @@
+# Installing the pipeline
+
+Download the [https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip](latest version)
+of the iPool-Seq pipeline, and unzip it. On a linux terminal, this is achieved with
+
+```
+VER=latest-release
+URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
+curl -L -O $URL/$VER.zip
+unzip $VER.zip
+cd ipoolseq-pipeline-$VER
+```
+
 # Installing Dependencies
 
 The file "ipoolseq.yaml" defines a conda (https://conda.io) environment that
@@ -23,6 +36,8 @@ installed in your home directory, we recommend you additionally do
   export PYTHONNOUSERSITE=1
   export R_LIBS_USER='-'
 ```
+
+Note that these commands also only affect the current terminal session!
 
 # Running the Pipeline on the 12 libraries of Uhse et al.[1]
 
