@@ -1,6 +1,7 @@
 #!/bin/bash
-# Activate conda
+# Enable & update conda
 . /opt/conda/etc/profile.d/conda.sh
+conda update -n base -c defaults conda
 export USER=user
 
 # 1a. Download pipeline
