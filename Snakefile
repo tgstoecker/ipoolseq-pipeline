@@ -1,5 +1,5 @@
 # Snakefile, Copyright 2018, 2019 Florian G. Pflug
-# 
+#
 # This file is part of the iPool-Seq Analysis Pipeline
 #
 # The iPool-Seq Analysis Pipeline is free software: you can redistribute it
@@ -19,6 +19,60 @@
 include: "scripts/snakemake.inc"
 
 configfile: "cfg/config.yaml"
+
+with open("VERSION") as f:
+	VERSION = f.read().strip()
+
+rule help:
+	"""
+	"""
+	run:
+		print("This is the iPool-Seq analysis pipeline version %s\n" % VERSION +
+		      "Copyright 2017 - 2019 Florian G. Pflug\n"
+		      "\n"
+		      "Necessary input files\n"
+		      "---------------------\n"
+		      "\n"
+		      "  cfg/your_design/reference.fa                reference genome\n"
+		      "  cfg/your_design/cassette.fa                 cassette end sequences\n"
+		      "  cfg/your_design/knockouts.gff               knockout cassette locations\n"
+		      "\n"
+		      "and for each replicate either\n"
+		      "\n"
+		      "  data/your_design/your_replicate-in.bam      sequenced input pool (both reads)\n"
+		      "  data/your_design/your_replicate-out.bam     sequenced output pool (both reads)\n"
+		      "\n"
+		      "or\n"
+		      "\n"
+		      "  data/your_design/your_replicate-in.1.fq.gz  sequenced input pool (read 1)\n"
+		      "  data/your_design/your_replicate-in.2.fq.gz  sequenced input pool (read 2)\n"
+		      "  data/your_design/your_replicate-out.1.fq.gz sequenced output pool (read 1)\n"
+		      "  data/your_design/your_replicate-out.2.fq.gz sequenced output pool (read 2)\n"
+		      "\n"
+		      "Computing abundance tables for your_replicate or your_design\n"
+		      "------------------------------------------------------------\n"
+		      "\n"
+		      "  snakemake data/your_design/your_replicate-in.count.tab\n"
+		      "  snakemake data/your_design/your_replicate-out.count.tab\n"
+		      "\n"
+		      "Running a differential virulence analysis for your_replicate of your_design\n"
+		      "---------------------------------------------------------------------------\n"
+		      "\n"
+		      "  snakemake data/your_design/your_replicate.dv.tab\n"
+		      "\n"
+		      "This additionally generates the report data/your_design/your_replicate.dv.html\n"
+		      "\n"
+		      "Additional information\n"
+		      "----------------------\n"
+		      "\n"
+		      "See README.md\n"
+		      "\n"
+		      "License\n"
+		      "-------\n"
+		      "This program is distributed in the hope that it will be useful, but WITHOUT ANY\n"
+		      "WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A\n"
+		      "PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.\n",
+		      file=sys.stderr)
 
 rule simulate_trumicount_output:
 	"""Simulates TRUmiCount-generated count tables
