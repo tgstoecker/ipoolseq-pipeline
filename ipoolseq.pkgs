@@ -30,7 +30,7 @@ https://conda.anaconda.org/conda-forge/linux-64/make-4.2.1-h470a237_1003.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/mkl-2018.0.3-1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.1-hfc679d8_2.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/nextgenmap-0.5.5-h2d50403_2.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/openssl-1.0.2p-h14c3975_1002.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/openssl-1.0.2r-h14c3975_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pcre-8.41-hfc679d8_3.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/perl-5.26.2-h14c3975_1000.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pixman-0.34.0-h470a237_3.tar.bz2
@@ -100,7 +100,6 @@ https://conda.anaconda.org/conda-forge/linux-64/markupsafe-1.1.0-py36h470a237_0.
 https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-0.6.0-py36h2d50403_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/multidict-4.5.2-py36h470a237_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/namedlist-1.7-py36_1000.tar.bz2
-https://repo.anaconda.com/pkgs/main/linux-64/numpy-1.12.1-py36he24570b_1.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/numpy-base-1.15.4-py36h81de0dd_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/olefile-0.46-py_0.tar.bz2
 https://conda.anaconda.org/bioconda/noarch/picard-2.18.23-0.tar.bz2
@@ -132,8 +131,6 @@ https://conda.anaconda.org/conda-forge/linux-64/google-resumable-media-0.0.2-py3
 https://conda.anaconda.org/conda-forge/linux-64/harfbuzz-1.9.0-h04dbb29_1.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/htslib-1.9-hc238db4_4.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/idna_ssl-1.1.0-py36_1000.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/mkl_fft-1.0.10-py36_0.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/mkl_random-1.0.2-py36_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/mmtf-python-1.1.2-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pillow-5.4.1-py36hc736899_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/pyasn1-modules-0.0.5-py36_0.tar.bz2
@@ -143,7 +140,6 @@ https://conda.anaconda.org/conda-forge/noarch/python-dateutil-2.7.5-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/python-irodsclient-0.7.0-py_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/rsa-3.1.4-py36_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/samtools-1.9-h8ee4bcc_1.tar.bz2
-https://repo.anaconda.com/pkgs/main/linux-64/scipy-1.1.0-py36hc49cb51_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/setuptools-40.6.3-py36_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/yarl-1.3.0-py36h470a237_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/aiohttp-3.4.4-py36h470a237_0.tar.bz2
@@ -155,9 +151,7 @@ https://conda.anaconda.org/conda-forge/noarch/gitpython-2.1.11-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/google-auth-1.2.1-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/jinja2-2.10-py_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/jsonschema-3.0.0a3-py36_1000.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/matplotlib-2.2.3-py36h8e2386c_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/networkx-2.2-py_1.tar.bz2
-https://conda.anaconda.org/conda-forge/linux-64/pandas-0.23.4-py36hf8a1672_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pango-1.40.14-he752989_2.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/protobuf-3.6.1-py36hfc679d8_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/pynacl-1.3.0-py36h470a237_0.tar.bz2
@@ -165,7 +159,6 @@ https://conda.anaconda.org/bioconda/linux-64/pysam-0.15.1-py36h0380709_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/reportlab-3.5.12-py36h77bcf2c_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/wheel-0.32.3-py36_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/aioeasywebdav-2.2.0-py36_0.tar.bz2
-https://conda.anaconda.org/bioconda/linux-64/biopython-1.70-np112py36_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/google-auth-httplib2-0.0.3-py_2.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/googleapis-common-protos-1.5.5-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/graphviz-2.38.0-h08bfae6_9.tar.bz2
@@ -174,8 +167,6 @@ https://conda.anaconda.org/conda-forge/linux-64/pip-18.1-py36_1000.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/r-base-3.5.1-h391c2eb_5.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/s3transfer-0.1.13-py36_1001.tar.bz2
 https://conda.anaconda.org/bioconda/noarch/snakemake-minimal-5.4.0-py_0.tar.bz2
-https://conda.anaconda.org/bioconda/linux-64/umi_tools-0.5.5-py36h470a237_0.tar.bz2
-https://conda.anaconda.org/bioconda/noarch/bcbiogff-0.6.4-py_1.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-biocgenerics-0.26.0-r351_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-genomeinfodbdata-1.1.0-r351_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-zlibbioc-1.26.0-r351h470a237_0.tar.bz2
@@ -250,7 +241,6 @@ https://conda.anaconda.org/conda-forge/noarch/r-pillar-1.3.1-r351h6115d3f_1000.t
 https://conda.anaconda.org/conda-forge/linux-64/r-promises-1.0.1-r351h9d2a408_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/r-reshape2-1.4.3-r351h9d2a408_2.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/r-scales-1.0.0-r351h9d2a408_1.tar.bz2
-https://conda.anaconda.org/bioconda/noarch/snakemake-5.4.0-0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-biocparallel-1.14.2-r351h26a2512_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-genomeinfodb-1.16.0-r351_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-xvector-0.20.0-r351h470a237_0.tar.bz2
@@ -271,3 +261,13 @@ https://conda.anaconda.org/conda-forge/noarch/r-crosstalk-1.0.0-r351h6115d3f_100
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-genomicalignments-1.16.0-r351h470a237_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/r-dt-0.4-r351h6115d3f_1001.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/bioconductor-rtracklayer-1.40.6-r351h470a237_0.tar.bz2
+https://conda.anaconda.org/bioconda/noarch/bcbiogff-0.6.4-py_1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/biopython-1.73-py36h14c3975_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/matplotlib-2.2.3-py36h8e2386c_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/mkl_fft-1.0.10-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/mkl_random-1.0.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/numpy-1.15.4-py36h1d66e8a_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/pandas-0.23.4-py36hf8a1672_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/scipy-1.1.0-py36hc49cb51_0.tar.bz2
+https://conda.anaconda.org/bioconda/noarch/snakemake-5.4.0-0.tar.bz2
+https://conda.anaconda.org/bioconda/linux-64/umi_tools-0.5.5-py36h470a237_0.tar.bz2
