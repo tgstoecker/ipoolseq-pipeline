@@ -1,6 +1,6 @@
 # Installing the pipeline
 
-Download the [https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip](latest version)
+Download the [latest version](https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip)
 of the iPool-Seq pipeline, and unzip it. On a linux terminal, this is achieved with
 
 ```
