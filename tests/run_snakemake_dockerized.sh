@@ -11,7 +11,6 @@ mkdir -p ipoolseq-pipeline.ctx
 cp ../Snakefile ipoolseq-pipeline.ctx
 cp -r ../scripts ipoolseq-pipeline.ctx
 cp -r ../cfg ipoolseq-pipeline.ctx
-cp run_snakemake.sh ipoolseq-pipeline.ctx
 (
 	echo "FROM $CONTAINER"
 	echo "VOLUME /ipoolseq-pipeline/data"
