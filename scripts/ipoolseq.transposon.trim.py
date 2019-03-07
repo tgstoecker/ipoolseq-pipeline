@@ -47,8 +47,8 @@ ofile2 = args.output_r2[0]
 cassette = SeqIO.to_dict(SeqIO.parse(args.cassette[0], "fasta"))
 if ('5p' not in cassette) or ('3p' not in cassette):
   raise RuntimeError('FASTA cassette file must contain sequences named 5p and 3p')
-CASSETTE_5P = cassette['5p'].seq.tostring()
-CASSETTE_3P = cassette['3p'].seq.tostring()
+CASSETTE_5P = str(cassette['5p'].seq)
+CASSETTE_3P = str(cassette['3p'].seq)
 
 CORES = int(os.environ.get('THREADS', '1'))
 print("Reading reads from %s and %s" % (ifile1, ifile2), file=sys.stderr)
