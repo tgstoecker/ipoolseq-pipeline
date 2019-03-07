@@ -8,7 +8,7 @@ mkdir -p "$DATA_DIR"
 
 # Add the pipeline code to the container created or updated above
 mkdir -p ipoolseq-pipeline.ctx
-cp ../Snakefile ipoolseq-pipeline.ctx
+cp ../Snakefile ../VERSION ipoolseq-pipeline.ctx
 cp -r ../scripts ipoolseq-pipeline.ctx
 cp -r ../cfg ipoolseq-pipeline.ctx
 (
