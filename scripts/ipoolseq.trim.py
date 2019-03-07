@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ipoolseq.transposon.trim.py, Copyright 2016, 2017, 2018, 2019 Florian G. Pflug
+# ipoolseq.trim.py, Copyright 2016, 2017, 2018, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #

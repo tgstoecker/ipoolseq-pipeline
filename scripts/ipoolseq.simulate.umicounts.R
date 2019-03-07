@@ -1,4 +1,4 @@
-# simulate_trumicount_output.R, Copyright 2018, 2019 Florian G. Pflug
+# ipoolseq.simulate.umicounts.R, Copyright 2018, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #

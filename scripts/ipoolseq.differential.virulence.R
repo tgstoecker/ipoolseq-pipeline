@@ -1,4 +1,4 @@
-# generate_differential_virulence_report.R, Copyright 2018, 2019 Florian G. Pflug
+# ipoolseq.differential.virulence.R, Copyright 2018, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #

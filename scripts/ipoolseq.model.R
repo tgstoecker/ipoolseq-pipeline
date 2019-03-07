@@ -1,4 +1,4 @@
-# model.R, Copyright 2017, 2019 Florian G. Pflug
+# ipoolseq.model.R, Copyright 2017, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #

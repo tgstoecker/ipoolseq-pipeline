@@ -3,7 +3,7 @@ title: "Differential Virulence Report"
 output:
   pdf_document: default
   html_document: default
-# differential_virulence.Rmd, Copyright 2016, 2017, 2018, 2019 Florian G. Pflug
+# ipoolseq.differential.virulence.Rmd, Copyright 2016, 2017, 2018, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
 #
@@ -34,7 +34,7 @@ library(data.table)
 library(DT)
 library(rtracklayer)
 
-source("scripts/ipsmodel.R")
+source("scripts/ipoolseq.model.R")
 
 # Output '-' for NA values
 options(knitr.kable.NA = '-')

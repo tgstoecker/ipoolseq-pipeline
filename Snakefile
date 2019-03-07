@@ -83,7 +83,7 @@ rule simulate_trumicount_output:
 		pool_in="data/Simulation/sim-in.count.tab",
 		pool_out="data/Simulation/sim-out.count.tab",
 		truth="data/Simulation/sim.truth.tab"
-	script:	"scripts/simulate_trumicount_output.R"
+	script:	"scripts/ipoolseq.simulate.umicounts.R"
 
 rule download_uhse_et_al:
 	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
@@ -165,7 +165,7 @@ rule adapter_readthrough_trim_pe:
 
 ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
 
-rule ipoolseq_transposon_trim_pe:
+rule ipoolseq_trim_pe:
 	"""Trims the iPoolSeq-specific technical sequences (including UMIs), append the UMI to the read name
 	
 	The read names in the output FASTQ file carry the UMI as a suffic (separated with _), and contains
@@ -185,7 +185,7 @@ rule ipoolseq_transposon_trim_pe:
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
-		"scripts/ipoolseq.transposon.trim.py\\\n"
+		"scripts/ipoolseq.trim.py\\\n"
 		"  {input.fa:q}\\\n"
 		"  {input.r1:q}\\\n"
 		"  {input.r2:q}\\\n"
@@ -209,7 +209,7 @@ rule fastqc_pe:
 		"rm {output:q}_fastqc.zip;\n"
 		"mv {output:q}_fastqc.html {output:q};\n"
 
-ruleorder: ipoolseq_transposon_trim_pe > bam_to_fqgz_pe
+ruleorder: ipoolseq_trim_pe > bam_to_fqgz_pe
 
 rule map_pe:
 	"""Maps the (trimmed) reads to the genome
@@ -338,4 +338,4 @@ rule differential_virulence:
 	output:
 		table="data/{dir}/{exp}.dv.tab",
 		html="data/{dir}/{exp}.dv.html"
-	script:	"scripts/generate_differential_virulence_report.R"
+	script:	"scripts/ipoolseq.differential.virulence.R"
