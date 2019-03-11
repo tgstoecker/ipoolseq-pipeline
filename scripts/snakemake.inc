@@ -21,12 +21,18 @@ import fnmatch
 import traceback
 from snakemake.io import contains_wildcard, regex
 
-if 'TMPDIR' in os.environ and 'USER' in os.environ:
-	SCRATCH_DIR = os.path.join(os.environ['TMPDIR'], os.environ['USER'])
-elif 'TMPDIR' in os.environ:
-	SCRATCH_DIR = os.environ['TMPDIR']
+# Pick scratch directory to use for rules which produce temporary files
+if 'SCRATCHDIR' in os.environ and 'USER' in os.environ:
+	SCRATCH_DIR = os.path.join(os.environ['SCRATCHDIR'], os.environ['USER'])
+elif 'SCRATCHDIR' in os.environ:
+	SCRATCH_DIR = os.environ['SCRATCHDIR']
 else:
-	SCRATCH_DIR = '/tmp'
+	SCRATCH_DIR = os.path.abspath(os.path.join(os.path.dirname(srcdir("snakemake.inc")), "../data/tmp"))
+
+# Create scratch directory
+print("Temporary files will go to %s" % SCRATCH_DIR, file=sys.stderr)
+if not os.path.exists(SCRATCH_DIR):
+	os.makedirs(SCRATCH_DIR)
 
 def strip_ext(path, ext):
 	if not path.endswith(ext):
