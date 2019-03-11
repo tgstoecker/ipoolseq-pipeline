@@ -103,7 +103,11 @@ rule download_uhse_et_al:
 		"fi;\n"
 		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
 		"echo \"Downloading $URL into {output}\";\n"
-		"curl -o {output:q} \"$URL\""
+		"curl -o {output:q}\\\n"
+		"  --continue -\\\n"
+		"  --retry 999\\\n"
+		"  --retry-max-time 0\\\n"
+		"  \"$URL\""
 
 rule bam_to_fqgz_pe:
 	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
