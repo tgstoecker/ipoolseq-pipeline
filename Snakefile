@@ -154,7 +154,7 @@ rule adapter_readthrough_trim_pe:
 	params:
 		opts=config_options('trimmomatic', required=True),
 		scratch=default_scratch
-	threads: 16
+	threads: 4
 	log:
 		"data/{dir}/{lib}.tom.log"
 	shell:
@@ -183,7 +183,7 @@ rule ipoolseq_trim_pe:
 		r1="data/{dir}/{lib}.trim.1.fq.gz",
 		r2="data/{dir}/{lib}.trim.2.fq.gz"
 	priority: 1
-	threads: 16
+	threads: 4
 	log:
 		"data/{dir}/{lib}.trim.log"
 	shell:
@@ -202,7 +202,7 @@ rule fastqc_pe:
 	wildcard_constraints:
 		ri="1|2"
 	priority: 1
-	threads: 16
+	threads: 4
 	shell:
 		"zcat {input:q}\\\n"
 		"| fastqc\\\n"
@@ -231,7 +231,7 @@ rule map_pe:
 	params:
 		opts=config_options('ngm'),
 		scratch=default_scratch
-	threads: 32
+	threads: 8
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
@@ -283,7 +283,7 @@ rule trumicount_pe:
 	log:	"data/{dir}/{lib}.count.log"
 	params:
 		opts=config_options('trumicount')
-	threads: 32
+	threads: 16
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"trumicount\\\n"
@@ -308,7 +308,7 @@ rule read_stats:
 		count="data/{dir}/{lib}.count.tab"
 	output:
 		stats="data/{dir}/{lib}.stats.tab"
-	threads: 8
+	threads: 4
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
