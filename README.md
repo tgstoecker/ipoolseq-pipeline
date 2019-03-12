@@ -29,17 +29,7 @@ can be used, be activated for the current terminal session by doing
   conda activate ipoolseq
 ```
 
-To prevent python and R from using possibly incompatible package version
-installed in your home directory, we recommend you additionally do
-
-```
-  export PYTHONNOUSERSITE=1
-  export R_LIBS_USER='-'
-```
-
-Note that these commands also only affect the current terminal session!
-
-# Running the Pipeline on the 12 libraries of Uhse et al.[1]
+# Running the Pipeline on the 12 libraries of Uhse et al.
 
 The following command downloads the raw sequencing reads for the 12 (2
 experiments, 3 replicates for each, each replicate consists of an input and
@@ -54,6 +44,6 @@ should be adjusted to the number of cores available.
 
 # References
 
-[1] Uhse et al., In vivo insertion pool sequencing identifies virulence factors
-    in a complex fungal–host interaction. PLoS Biol 16(4), 2018.
-    DOI: [10.1371/journal.pbio.2005129](https://doi.org/10.1371/journal.pbio.2005129)
+Uhse et al., *In vivo insertion pool sequencing identifies virulence factors
+in a complex fungal–host interaction*. PLoS Biol 16(4), 2018.
+DOI: [10.1371/journal.pbio.2005129](https://doi.org/10.1371/journal.pbio.2005129)
