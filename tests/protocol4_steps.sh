@@ -9,10 +9,10 @@ VER=latest-release
 URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
 curl -L -O $URL/$VER.zip
 unzip $VER.zip
-cd ipoolseq-pipeline-$VER
+cd ipoolseq-pipeline-$VER || exit 1
 
 # 1b. Create & activate environment
-conda env create --file ipoolseq.yaml
+conda env create --file ipoolseq.yaml || exit 1
 conda activate ipoolseq
 
 # No errors now
