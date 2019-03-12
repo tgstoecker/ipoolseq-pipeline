@@ -40,6 +40,7 @@ cairo=1.14.12=h276e583_5
 certifi=2018.11.29=py36_1000
 cffi=1.11.5=py36h5e8e0c9_1
 chardet=3.0.4=py36_1003
+conda-ecosystem-user-package-isolation=1.0=0
 configargparse=0.13.0=py_1
 cryptography=2.3.1=py36hdffb7b8_0
 cryptography-vectors=2.3.1=py36_1000

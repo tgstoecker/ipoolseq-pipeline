@@ -3,6 +3,7 @@
 # platform: linux-64
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/linux-64/binutils-2.31-0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/conda-ecosystem-user-package-isolation-1.0-0.tar.bz2
 https://repo.anaconda.com/pkgs/r/linux-64/_r-mutex-1.0.0-anacondar_1.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/blas-1.0-mkl.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2018.11.29-ha4d7672_0.tar.bz2
