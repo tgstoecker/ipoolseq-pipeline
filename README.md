@@ -33,7 +33,7 @@ can be used, be activated for the current terminal session by doing
 
 The following command downloads the raw sequencing reads for the 12 (2
 experiments, 3 replicates for each, each replicate consists of an input and
-an output pool) libraries from Uhse et al.[2], removes read-throughs and
+an output pool) libraries from Uhse et al., removes read-throughs and
 technical sequences from the reads, maps them to the U. maydis genome, and
 counts the number of UMIs per insertional knockout. The number of cores (8)
 should be adjusted to the number of cores available.
@@ -42,8 +42,12 @@ should be adjusted to the number of cores available.
   snakemake --cores 8 data/Uhse_et_al.2018/exp{A,B}.r{1,2,3}.dv.html
 ```
 
+# More Information
+
+See http://www.cibiv.at/software/ipoolseq-pipeline
+
 # References
 
-Uhse et al., *In vivo insertion pool sequencing identifies virulence factors
-in a complex fungal–host interaction*. PLoS Biol 16(4), 2018.
+Uhse et al. (2018). In vivo insertion pool sequencing identifies virulence factors
+in a complex fungal–host interaction. *PLoS Biology* 16(4), 2018.
 DOI: [10.1371/journal.pbio.2005129](https://doi.org/10.1371/journal.pbio.2005129)
