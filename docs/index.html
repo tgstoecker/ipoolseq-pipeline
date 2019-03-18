@@ -1,0 +1,144 @@
+<html>
+<head>
+  <meta charset='utf-8' />
+  <meta name="description" content="iPool-Seq Pipeline: An analysis pipeline for insertion pool sequencing data" />
+  <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+  <title>iPool-Seq Analysis Pipeline</title>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header_wrap" class="outer">
+    <header class="inner">
+      <div id="top">
+        <!-- <a id="manual_banner" class="top_banner" href="manual.pdf">Manual</a> -->
+        <!-- <a id="publication_banner" class="top_banner"  href="">Publication</a> -->
+        <a id="forkme_banner" class="top_banner"  href="https://github.com/Cibiv/ipoolseq-pipeline">View on GitHub</a>
+      </div>
+      <div id="bottom" class="bottom">
+        <a class="bottom_banner" href='#license'>
+          <img src='images/agplv3.svg' class=inlineimg style='height: auto'>
+        </a>
+      </div>
+
+      <h1 id="project_title">iPool-Seq Pipeline</h1>
+      <h2 id="project_tagline">An analysis pipeline for insertion pool sequencing data</h2>
+    </header>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main_content_wrap" class="outer">
+<section id="main_content" class="inner">
+
+<h2>Description</h2>
+
+The iPool-Seq (<a href="https://doi.org/10.1371/journal.pbio.2005129">Uhse et al. 2018</a>)
+protocol enables large-scale insertional mutagenesis screens of pathogens such as
+<i>U. maydis</i> (maize smut). It uses a combination of tagmentation, affinity
+purification and unique molecular identifiers (UMIs) to overcome the problem of the
+genetic material of the pathogen being severely unterrepresented within the host,
+and allows mutant abundances to be quantified via next-generation sequencing (NGS)
+accurately enough to detect differences in infection efficiacy between mutants and wildtypes.
+<p>
+Apart from the wet-lab protocol, achieving this level of accuracy requires carefull
+analysis of the sequencing data to remove artifacs and to deal with differences of
+mutant abundances in the pre-infection mutant pool, with mutant-specific PCR biases,
+and different sequencing depths and detection efficiencies between different libraries.
+<p>
+Our <b>iPool-Seq analysis pipeline</a> is based on the
+<a href="http://www.cibiv.at/software/trumicount">TRUmiCount</a> algorithm
+(<a href="https://doi.org/10.1093/bioinformatics/bty283">Pflug et al. 2018</a>) for the
+quantitative analysis of UMI data, and takes are of all steps of the analysis of iPool-Seq
+data. From from raw sequencing reads it computes the differential virulences of the mutants
+in the pre-infection pool compared to a set of reference mutants.
+
+<h2>Using the Pipeline</h2>
+
+<h3>Downloading from <a href='https://github.com/Cibiv/ipoolseq-pipeline/releases'><img src='images/github.png' class="inlineimg"></a></h3>
+Download the <a href="https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip">
+latest release</a> of the iPool-Seq analysis pipeline, and unzip it. On a Linux
+terminal, this is achieved with
+<pre>
+VER=latest-release
+URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
+curl -L -O $URL/$VER.zip
+unzip $VER.zip
+cd ipoolseq-pipeline-$VER
+</pre>
+
+<h3>Installing the necessary tools from
+<a href='https://conda.io/'> <img src='images/conda.png' class="inlineimg"></a> and
+<a href='https://bioconda.github.io/'><img src='images/bioconda.png' class="inlineimg"></a>
+</h3>
+
+The file <var>ipoolseq.yaml</var> defines a <a href='https://conda.io/'>
+<img src='images/conda.png' class="inlineimg"></a> environment that provides all
+programs necessary for running the iPool-Seq analysis pipeline. After
+<a href="https://conda.io/projects/conda/en/latest/user-guide/install/index.html">
+installing conda</a>, create the conda environment <var>ipoolseq</var> with
+
+<pre>
+conda env create --file ipoolseq.yaml
+</pre>
+
+Remember that (as all conda environments), this environment must, before it
+can be used, be activated for the current terminal session by doing
+
+<pre>
+conda activate ipoolseq
+</pre>
+
+<h3>Testing the installation</h3>
+The iPool-Seq protocol was introduced by <a href="https://doi.org/10.1371/journal.pbio.2005129">
+Uhse et al</a>. To download and analyse their experiment A1 with the iPool-Seq
+pipeline, run
+<pre>
+snakemake data/Uhse_et_al.2018/expA.r1.dv.tab
+</pre>
+The will generate the table <var>data/Uhse_et_al.2018/expA.r1.dv.tab</var>
+containing the results of the differential virulence analysis for the mutants
+screened by Uhse et al, and produces an accompanying report
+<var>data/Uhse_et_al.2018/expA.r1.dv.html</var> that can be viewed with a web browser.
+
+<h3>Analyzing your own data</h3>
+Run
+<pre>snakemake help</pre>
+for a brief overview of the necessary input files
+
+<h2>Publications</h2>
+Simon Uhse, Florian G. Pflug, Stirnberg Alexandra, Ehrlinger Klaus, Arndt von Haeseler,
+Armin Djamei (2018). In vivo insertion pool sequencing identifies virulence factors in
+a complex fungal–host interaction. <i>PLoS Biology</i> 16(4): e2005129. DOI:
+<a href="https://doi.org/10.1371/journal.pbio.2005129">10.1371/journal.pbio.2005129</a>
+<p>
+Florian G. Pflug, Arndt von Haeseler (2018). TRUmiCount: correctly counting absolute
+numbers of molecules using unique molecular identifiers. <i>Bioinformatics</i> Volume 34,
+Issue 18, 15 September 2018, Pages 3137–3144. DOI:
+<a href="https://doi.org/10.1093/bioinformatics/bty283">10.1093/bioinformatics/bty283</a>
+
+<h2><a name='license'></a>License</h2>
+The iPool-Seq pipeline is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+<p>
+The iPool-Seq pipeline is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+details.
+
+<!-- END MAIN CONTENT -->
+</section>
+</div>
+
+<!-- FOOTER  -->
+<div id="footer_wrap" class="outer">
+  <footer class="inner">
+    <p class="copyright">iPool-Seq pipeline maintained by the <a href="http://www.cibiv.at">
+    Center for Integrative Bioinformatics Vienna</a></p>
+    <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+  </footer>
+</div>
+
+</body>
