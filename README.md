@@ -15,8 +15,8 @@ cd ipoolseq-pipeline-$VER
 
 The file "ipoolseq.yaml" defines a conda (https://conda.io) environment that
 provides all programs necessary for running the iPool-Seq analysis pipeline.
-After installing conda (see https://conda.io), a conda environment called
-ipoolseq can be created with
+After installing conda (see https://conda.io), create the conda environment
+"ipoolseq" with
 
 ```
   conda env create --file ipoolseq.yaml
