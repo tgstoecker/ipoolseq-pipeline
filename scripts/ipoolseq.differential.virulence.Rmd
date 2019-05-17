@@ -43,12 +43,21 @@ options(knitr.kable.NA = '-')
 PLOT.FDR.THRESHOLD <- 0.05
 
 # Convert a p-value into a significance marker
+#   '?'     if p notin [0, 1]
+#   ' '     if p in (1e-1, 1]
+#   '+'     if p in (5e-2, 1e-1]
+#   '*'     if p in (1e-2, 5e-1]
+#   '**'    if p in (1e-3, 1e-2]
+#   '***'   if p in (1e-4, 1e-3]
+#   '****'  if p in (1e-5, 1e-4]
+#   '*****' if p in [0,    1e-5]
 sig.stars <- function(p) {
   pp <- ifelse((p > 0) & (p < 1), p, 0.5)
   ifelse(!is.finite(p) | (p < 0) | (p > 1), "?",
-         ifelse(p > 0.05, " ",
-                ifelse(p == 0, "*****",
-                       strrep("*", pmin(ceiling(-log10(pp)*(1+.Machine$double.eps))-1, 5)))))
+         ifelse(p > 0.1, " ",
+                ifelse(p > 0.05, "+",
+                       ifelse(p == 0, "*****",
+                              strrep("*", pmin(ceiling(-log10(pp)*(1+.Machine$double.eps))-1, 5))))))
 }
 
 # Create a Markdown link
