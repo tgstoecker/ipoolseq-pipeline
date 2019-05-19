@@ -90,7 +90,6 @@ counts.flank.out <- load.trumicount.output(snakemake@input[["pool_out"]])
 
 # Aggregate the data for the 5' and 3' flank of each gene.
 # We add the counts and average the losses of the two flanks for each gene,
-# see docs/pipeline_description.pdf for details
 combine.flanks <- function(counts.flank) {
   counts.flank[!(knockout %in% c('ambiguous', 'unmatched')), list(
     n = sum(n.obs, na.rm=TRUE),
