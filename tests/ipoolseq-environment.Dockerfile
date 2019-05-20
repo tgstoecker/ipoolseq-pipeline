@@ -1,10 +1,10 @@
-FROM continuumio/miniconda
+FROM ubuntu:18.04
+ARG ENVIRONMENT_REV
+LABEL environment-rev=$ENVIRONMENT_REV
 
-RUN apt-get install -y unzip && \
-    apt-get clean
+RUN mkdir /ipoolseq-pipeline
+COPY ipoolseq-environment.ctx/environment.rev /ipoolseq-pipeline/
+COPY ipoolseq-environment.ctx/environment.tar.gz /ipoolseq-pipeline/
+COPY ipoolseq-environment.ctx/install-environment.sh /ipoolseq-pipeline/
 
-RUN mkdir /ipoolseq-pipeline-dependencies
-COPY ipoolseq-environment.ctx/ipoolseq.yaml /ipoolseq-pipeline-dependencies/ipoolseq.yaml
-
-RUN conda env create --file /ipoolseq-pipeline-dependencies/ipoolseq.yaml && \
-    conda clean --all --yes
+RUN cd /ipoolseq-pipeline && ./install-environment.sh && rm environment.tar.gz install-environment.sh
