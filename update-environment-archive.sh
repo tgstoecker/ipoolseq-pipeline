@@ -1,14 +1,15 @@
 #!/bin/bash
 
+# Was the script sourced?
+if ! (return 0 2>/dev/null); then
+	echo "$0 must be sourced, not executed!" >&2
+	exit 1
+fi
+
 # Check if conda is available
 if ! declare -f conda > /dev/null; then
-	echo "The conda function is not available in the current shell. Did you execute $0 instead of sourcing it?" >&2
-	if (return 0 2>/dev/null); then
-		# We were probably sourced
-		return
-	else
-		exit
-	fi
+	echo "conda was not enabled properly" >&2
+	return
 fi
 
 # Check if there are uncommitted changed
