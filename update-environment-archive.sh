@@ -38,6 +38,9 @@ echo "*** Packing environment ..."
 cp environment.yaml "$ENVDIR" || return
 conda pack -p "$ENVDIR" -o environment.tar.gz --format tar.gz --compress-level 9 --n-threads 4 || return
 
+echo "*** Deactivating environment, returning to previously activate environment ..."
+conda deactivate || return
+
 echo "*** Comitting environment.tar.gz ..."
 git add environment.tar.gz || return
 git commit -m "Updated environment.tar.gz based on environment.yaml rev. $(git log -n 1 --pretty=format:%h -- environment.yaml)" || return
