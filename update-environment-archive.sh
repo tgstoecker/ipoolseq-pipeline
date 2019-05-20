@@ -19,7 +19,7 @@ fi
 
 # Create temporary directory
 ENVDIR="$(mktemp -d --suffix='-ipoolseq-env')"
-trap "echo \"Removing $ENVDIR\"; rm -rf \"$ENVDIR\"" EXIT
+trap "echo \"Removing $ENVDIR\"; rm -rf \"$ENVDIR\"" RETURN
 
 echo "*** Creating $ENVDIR ..."
 conda create -p "$ENVDIR" --no-default-packages --yes || return
