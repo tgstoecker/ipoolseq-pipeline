@@ -13,14 +13,16 @@ if ! declare -f conda > /dev/null; then
 fi
 
 # Check if there are uncommitted changed
-if [ $(git status --porcelain | wc -l) != 0 ]; then
+git status --porcelain > /dev/null || return
+git lfs status --porcelain > /dev/null || return
+if [ $(git status --porcelain | wc -l) != 0 ] || [ $(git lfs status --porcelain | wc -l) != 0 ]; then
 	echo "Working copy contains uncommitted changes" >&2
 	return
 fi
 
 # Create temporary directory
 ENVDIR="$(mktemp -d --suffix='-ipoolseq-env')"
-trap "echo \"Removing $ENVDIR\"; rm -rf \"$ENVDIR\"" RETURN
+trap "echo \"Removing $ENVDIR\"; rm -rf \"$ENVDIR\"; trap - RETURN" RETURN
 
 echo "*** Creating $ENVDIR ..."
 conda create -p "$ENVDIR" --no-default-packages --yes || return
