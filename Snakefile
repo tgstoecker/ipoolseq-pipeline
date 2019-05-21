@@ -289,14 +289,14 @@ rule trumicount_pe:
 		"trumicount\\\n"
 		"  --input-bam {input.bam:q}\\\n"
 		"  --group-per gene\\\n"
-		"  --cores {threads}\\\n"
 		"  --include-filter-statistics\\\n"
 		"  --output-counts {output.counts:q}\\\n"
 		"  --output-plot {output.plot:q}\\\n"
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
                 "  --molecules 1\\\n"
-		"  {params.opts}" #params.opts can contain MULTPLE options, hence don't quote
+		"  {params.opts}\\\n" #params.opts can contain MULTPLE options, hence don't quote
+		"  --cores {threads}"
 
 rule read_stats:
 	"""Collects statistics about the number of reads and UMIs remaing after each step
