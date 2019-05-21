@@ -1,10 +1,12 @@
-data/
+data
+environment
 scripts/__pycache__
-.snakemake/
+.snakemake
 tests/*.ctx
 tests/data
+tests/snakemake-log
 tests/*.log
 # Local entries
 sge.*
-sge/
-env
+sge
+environment.scratch
