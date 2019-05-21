@@ -19,9 +19,9 @@ dependencies:
   - r-data.table>=1.12
   - r-dt
   - r-gwpcr>=0.9.10
-  - r-markdown
+  - r-rmarkdown>=1.12
   - samtools>=1.9
   - snakemake>=5.4.5
-  - trimmomatic=0.39
+  - trimmomatic>=0.39
   - trumicount>=0.9.13
   - umi_tools=0.5.5
