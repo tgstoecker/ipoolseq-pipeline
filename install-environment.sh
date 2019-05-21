@@ -8,7 +8,7 @@ if [ -e "./environment" ] && ! [ -z "$(ls -A ./environment)" ]; then
 	exit 1
 fi
 
-if [ ! -e "environment.tar.gz" ] || (head -n1 "environment.tar.gz" | grep '^version '); then
+if [ ! -e "environment.tar.gz" ] || (head -n1 "environment.tar.gz" | grep '^version ' > /dev/null); then
 	# Looks like environment.tar.gz is a git LFS pointer, not the real file.
 	# Directly downloading the file given its pointer would require git-lfs to
 	# be installed, so instead we rely to environment.ref to point to a revision
