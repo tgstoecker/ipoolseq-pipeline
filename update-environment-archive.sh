@@ -39,7 +39,9 @@ conda env update -f environment.yaml -p "$ENVDIR" --prune || return
 
 echo "*** Packing environment ..."
 cp environment.yaml "$ENVDIR" || return
-conda pack -p "$ENVDIR" -o environment.tar.gz --format tar.gz --compress-level 9 --n-threads 4 || return
+rm -f environment.tar.gz.new
+conda pack -p "$ENVDIR" -o environment.tar.gz.new --format tar.gz --compress-level 9 --n-threads 4 || return
+mv environment.tar.gz.new environment.tar.gz || return
 
 echo "*** Deactivating environment, returning to previously activate environment ..."
 conda deactivate || return
