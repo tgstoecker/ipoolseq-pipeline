@@ -54,10 +54,8 @@ CORES = int(os.environ.get('THREADS', '1'))
 print("Reading reads from %s and %s" % (ifile1, ifile2), file=sys.stderr)
 print("Writing reads to %s and %s" % (ofile1, ofile2), file=sys.stderr)
 print("Using %d core(s)" % (CORES), file=sys.stderr)
-print("Cassete 5' End (5'->3' on strand -: %s" % (CASSETTE_5P), file=sys.stderr)
-print("Cassete 3' End (5'->3' on strand +: %s" % (CASSETTE_3P), file=sys.stderr)
-
-# TODO print sequences
+print("Cassete 5'-end (5'->3' on strand -): %s" % (CASSETTE_5P), file=sys.stderr)
+print("Cassete 3'-end (5'->3' on strand +): %s" % (CASSETTE_3P), file=sys.stderr)
 
 # Reverse-complement a sequence
 DNA_REVCOMP = str.maketrans("ACGT", "TGCA")
