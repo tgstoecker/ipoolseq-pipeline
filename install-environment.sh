@@ -24,6 +24,13 @@ if [ ! -e "environment.tar.gz" ] || (head -n1 "environment.tar.gz" | grep '^vers
 	fi
 fi
 
+if [ -x "$(command -v sha256sum)" ]; then
+	echo "*** Verifying the integrity of environment.tar.gz"
+	sha256sum -c environment.sha256 || exit 1
+else
+	echo "*** sha256sum is not available, cannot verify environment.tar.gz"
+fi
+
 echo "*** Unpacking environment.tar.gz"
 test -e ./environment || mkdir ./environment || exit 1
 tar -xzf environment.tar.gz -C environment || exit 1

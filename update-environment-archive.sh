@@ -46,8 +46,11 @@ mv environment.tar.gz.new environment.tar.gz || return
 echo "*** Deactivating environment, returning to previously activate environment ..."
 conda deactivate || return
 
+echo "*** Updating environment.sha256"
+sha256sum -b environment.tar.gz > environment.sha256 || return
+
 echo "*** Comitting environment.tar.gz ..."
-git add environment.tar.gz || return
+git add environment.tar.gz environment.sha256 || return
 git commit -m "Updated environment.tar.gz based on environment.yaml rev. $(git log -n 1 --pretty=format:%h -- environment.yaml)" || return
 
 echo "*** Comitting updated environent.rev ..."
