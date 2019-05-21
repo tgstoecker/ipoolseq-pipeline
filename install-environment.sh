@@ -8,6 +8,17 @@ if [ -e "./environment" ] && ! [ -z "$(ls -A ./environment)"]; then
 	exit 1
 fi
 
+if [ ! -e "environment.tar.gz" ] || (head -n1 "environment.tar.gz" | grep '^version '); then
+	# Looks like environment.tar.gz is a git LFS pointer, not the real file.
+	# Directly downloading the file given its pointer would require git-lfs to
+	# be installed, so instead we rely to environment.ref to point to a revision
+	# containing the correct file, and download that revision directly from GitHub.
+	# Luckily, when directly downloading a file, GitHub will handle LFS blobs
+	# correctly, and redirect us to the actual storage site.
+	echo "*** environment.tar.gz is only a git LFS pointer, downloading original from GitHub"
+	curl -O -L https://github.com/Cibiv/ipoolseq-pipeline/raw/$(cat environment.rev)/environment.tar.gz || exit 1
+fi
+
 echo "*** Unpacking environment.tar.gz"
 test -e ./environment || mkdir ./environment || exit 1
 tar -xzf environment.tar.gz -C environment || exit 1
