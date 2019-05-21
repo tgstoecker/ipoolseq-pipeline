@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO: Deal with a non-LFS checkout (or GitHub archive download) where environment.tar.gz
-# is only a LFS pointer to the actual blob
-
 if [ -e "./environment" ] && ! [ -z "$(ls -A ./environment)" ]; then
 	echo "./environment alreay exists and is non-emtpty. If you want to replace it, remove the old directory first!" >&2
 	exit 1
