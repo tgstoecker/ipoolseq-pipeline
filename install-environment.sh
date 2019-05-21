@@ -16,7 +16,15 @@ if [ ! -e "environment.tar.gz" ] || (head -n1 "environment.tar.gz" | grep '^vers
 	# Luckily, when directly downloading a file, GitHub will handle LFS blobs
 	# correctly, and redirect us to the actual storage site.
 	echo "*** environment.tar.gz is only a git LFS pointer, downloading original from GitHub"
-	curl -O -L https://github.com/Cibiv/ipoolseq-pipeline/raw/$(cat environment.rev)/environment.tar.gz || exit 1
+	URL="http://github.com/Cibiv/ipoolseq-pipeline/raw/$(cat environment.rev)/environment.tar.gz"
+	if [ -x "$(command -v curl)" ]; then
+		curl -O -L "$URL" || exit 1
+	elif [ -x "$(command -v wget)" ]; then
+		wget "$URL" || exit 1
+	else
+		echo "Neither curl nor wget are installed, one of these is required to download the environment" >&2
+		exit 1
+	fi
 fi
 
 echo "*** Unpacking environment.tar.gz"
