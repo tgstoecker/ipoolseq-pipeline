@@ -29,9 +29,12 @@ conda-pack archive of that environent. To unpack that environment into
 ./install-environment.sh
 ```
 
-(The script "install-environmet.sh" will also download "environment.tar.gz"
-from GitHub if necessary -- as a git LFS object, pristine checkouts or sourcecode
-archives from GitHub may contain a pointer file instead of the actual archive)
+*Note: The script "install-environment.sh" will download "environment.tar.gz" from GitHub
+if necessary - as a git LFS object, pristine checkouts or sourcecode archives from
+GitHub may contain a pointer file instead of the actual archive. If the download
+should fail, you can also manually download
+[environment.tar.gz](https://github.com/Cibiv/ipoolseq-pipeline/raw/master/environment.tar.gz)
+and place it in the root directory of the pipeline before running "install-environment.sh"*
 
 Remember that (as all conda environments), this environment must, before it
 can be used, be activated for the current terminal session by doing
