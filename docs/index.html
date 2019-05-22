@@ -61,31 +61,33 @@ terminal, this is achieved with
 <pre>
 VER=latest-release
 URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
-curl -L -O $URL/$VER.zip
-unzip $VER.zip
+curl -L -O $URL/$VER.tar.gz
+tar xzf $VER.tar.gz
 cd ipoolseq-pipeline-$VER
 </pre>
 
-<h3>Installing the necessary tools from
-<a href='https://conda.io/'> <img src='images/conda.png' class="inlineimg"></a> and
-<a href='https://bioconda.github.io/'><img src='images/bioconda.png' class="inlineimg"></a>
+<h3>Installing a <a href='https://bioconda.github.io/'><img src='images/bioconda.png' class="inlineimg"></a>
+environment containing all necessary dependencies
 </h3>
 
-The file <var>ipoolseq.yaml</var> defines a <a href='https://conda.io/'>
-<img src='images/conda.png' class="inlineimg"></a> environment that provides all
-programs necessary for running the iPool-Seq analysis pipeline. After
-<a href="https://conda.io/projects/conda/en/latest/user-guide/install/index.html">
-installing conda</a>, create the conda environment <var>ipoolseq</var> with
+The file <var>environment.yaml</var> defines a <a href='https://conda.io/'>
+<img src='images/conda.png' class="inlineimg"></a> environment that
+provides all programs necessary for running the iPool-Seq analysis pipeline. To
+ensure reproducibility of that environment even if Conda packages are replaced
+and removed, our source code repository also contains <var>environment.tar.gz</var>,
+a <a href="https://conda.github.io/conda-pack/">conda-pack</a> archive of that
+environent. To unpack that environment into <var>./environment</var> and make it
+usable, run
 
 <pre>
-conda env create --file ipoolseq.yaml
+./install-environment.sh
 </pre>
 
 Remember that (as all conda environments), this environment must, before it
 can be used, be activated for the current terminal session by doing
 
 <pre>
-conda activate ipoolseq
+source ./environment/bin/activate
 </pre>
 
 <h3>Testing the installation</h3>
