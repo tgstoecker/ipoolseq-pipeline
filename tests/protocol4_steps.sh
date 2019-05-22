@@ -9,8 +9,11 @@ cd ipoolseq-pipeline-$VER
 
 # Install & activate environment
 # 2.
-./install-environment.sh
+./install-environment.sh || exit 1
 source ./environment/bin/activate
+
+# No error now
+set -e
 
 # Test
 # 3.
