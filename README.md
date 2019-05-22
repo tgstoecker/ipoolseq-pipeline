@@ -6,28 +6,41 @@ of the iPool-Seq pipeline, and unzip it. On a linux terminal, this is achieved w
 ```
 VER=latest-release
 URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
-curl -L -O $URL/$VER.zip
-unzip $VER.zip
+curl -L -O $URL/$VER.tar.gz
+tar xzf $VER.tar.gz
 cd ipoolseq-pipeline-$VER
 ```
 
-# Installing Dependencies
+Instead, the desired [release](https://github.com/Cibiv/ipoolseq-pipeline/releases)
+can of course also be downloaded and unpacked manually, or cloned using `git clone`.
+In that case, all further commands must be entered in a terminal windows whose current
+directory is the root directory of the pipeline.
 
-The file "ipoolseq.yaml" defines a conda (https://conda.io) environment that
-provides all programs necessary for running the iPool-Seq analysis pipeline.
-After installing conda (see https://conda.io), create the conda environment
-"ipoolseq" with
+# Installing a Bioconda environment containing all necessary dependencies
+
+The file "environment.yaml" defines a Conda (https://conda.io) environment that
+provides all programs necessary for running the iPool-Seq analysis pipeline. To
+ensure reproducibility of that environment even if Conda packages are replaced
+and removed, our source code repository also contains "environment.tar.gz", a
+conda-pack archive of that environent. To unpack that environment into
+"./environment" and make it usable, run
 
 ```
-  conda env create --file ipoolseq.yaml
+./install-environment.sh
 ```
+
+(The script "install-environmet.sh" will also download "environment.tar.gz"
+from GitHub if necessary -- as a git LFS object, pristine checkouts or sourcecode
+archives from GitHub may contain a pointer file instead of the actual archive)
 
 Remember that (as all conda environments), this environment must, before it
 can be used, be activated for the current terminal session by doing
 
 ```
-  conda activate ipoolseq
+source ./environment/bin/activate
 ```
+
+*This step must be repeated for each new terminal session*
 
 # Running the Pipeline on the 12 libraries of Uhse et al.
 
