@@ -292,29 +292,36 @@ knitr::kable(data.table(
 ), digits=3)
 ```
 
-```{r plot_corr_io, fig.height=4, fig.width=8}
-p <- function(abd.in, abd.out, type, ...) {
-  plot.new()
-  plot.window(xlim=range(abd.in[abd.in>0], na.rm=TRUE),
-              ylim=range(abd.out[abd.out>0], na.rm=TRUE), log="xy")
-  axis(side=1)
-  axis(side=2)
-  title(xlab=paste0(type, " #UMIs in the input"),
-       ylab=paste0(type, " #UMIs in the output"),
-       ...)
-  points(ifelse(abd.in > 0, abd.in, 10**(par("usr")[1])),
-         ifelse(abd.out > 0, abd.out, 10**(par("usr")[3])),
-         pch=ifelse((abd.in == 0) | (abd.out == 0), 4, 1),
-         xpd=NA)
+```{r plot_corr_io, fig.height=3, fig.width=8}
+p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
+  missing <- !is.finite(abd.in) | (abd.in == 0) | !is.finite(abd.out) | (abd.out == 0)
+  plot_ly(showlegend=first) %>%
+  add_markers(x=abd.in[!missing],
+              y=abd.out[!missing],
+              color=I("black"),
+              text=labels[!missing], name="present in input and output", legendgroup="nz",
+              marker=list(symbol="circle-open")) %>%
+  add_markers(x=pmax(abd.in[missing], 1, na.rm=TRUE),
+              y=pmax(abd.out[missing], 1, na.rm=TRUE),
+              color=I("black"),
+              text=labels[missing], name="missing in input or output", legendgroup="z",
+              marker=list(symbol="x")) %>%
+  layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
+         yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
+         annotations=list(x=0.5, y=1, text = main, xanchor="center", yanchor="bottom",
+                          xref='paper', yref='paper',
+                          showarrow=F, font=list(size=15)))
 }
 
-layout(cbind(1, 2))
-d <- counts[, {
-  p(n.in, n.out, main="Input vs. Output", type="Raw")
+p.raw <- counts[, {
+  p(n.in, n.out, knockout, main="Input vs. Output (raw)", type="Raw", first=TRUE)
 }]
-d <- counts[, {
-  p(abundance.in, abundance.out, main="Input vs. Output (loss-corrected)", type="Loss-corr.")
+p.corr <- counts[, {
+  p(abundance.in, abundance.out, knockout, main="Input vs. Output (loss-corr.)", type="Loss-corr.")
 }]
+subplot(list(p.raw, p.corr), nrows=1,
+        titleX=TRUE, titleY=TRUE, margin=0.12) %>%
+layout(width=1000, height=300)
 ```
 
 ## Model Parameter & Fit
