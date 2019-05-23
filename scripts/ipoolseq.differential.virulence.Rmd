@@ -199,7 +199,7 @@ knitr::kable(stats)
 
 For the distribution of the number of reads per UMI, see the *TRUmiCount reports* linked in the list of files above.
 
-## Correlation of 3' and 5' Flank
+## Correlation of 3' and 5' Flank Abundances
 
 ```{r table_corr_flanks}
 group.by.knockout <- function(data) {
@@ -269,7 +269,7 @@ subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
 layout(width=1000, height=600)
 ```
 
-## Correlation of Input and Output
+## Correlation of Input and Output Abundances
 
 ```{r table_corr_io}
 group.by.knockout <- function(data) {
@@ -323,7 +323,7 @@ subplot(list(p.raw, p.corr), nrows=1,
 layout(width=1000, height=300)
 ```
 
-## Model Parameter & Fit
+## Model Parameters
 
 ```{r fit_model}
 # Fit null model
@@ -336,7 +336,7 @@ knitr::kable(signif(null.model, digits=3),
 
 # 3. Results
 
-## Log2 fold changes relative to neutral knockouts
+## Virulence relative to the neutral reference set
 
 ```{r sig_test}
 # Compute log2 fold changes and p-values
@@ -415,7 +415,7 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
                   title=paste0("log2 virulence fold change")))
 ```
 
-## Depletion of knockouts in the output compared to neutral knockout
+## Reduced virulence compared to the neutral reference set
 
 ```{r table_depleted}
 DT::datatable(results[!is.na(log2fc), list(
@@ -425,7 +425,7 @@ DT::datatable(results[!is.na(log2fc), list(
   formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
-## Enrichment of knockouts in the output compared to neutral knockout
+## Increased virulence compared to the neutral reference set
 
 ```{r table_enriched}
 DT::datatable(results[!is.na(log2fc), list(
