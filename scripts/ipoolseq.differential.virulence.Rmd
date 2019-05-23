@@ -425,6 +425,8 @@ DT::datatable(results[!is.na(log2fc), list(
   formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
+
 ## Increased virulence compared to the neutral reference set
 
 ```{r table_enriched}
@@ -435,3 +437,4 @@ DT::datatable(results[!is.na(log2fc), list(
   formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
