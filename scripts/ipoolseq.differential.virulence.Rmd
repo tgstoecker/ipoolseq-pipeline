@@ -23,6 +23,26 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+# Enable to run this R markdown file interactively
+if (FALSE) {
+  design <- "Uhse_et_al.2018"
+  replicate <- "expA.r1"
+  setClass("SnakemakeStub", representation(input = "list", output = "list"))
+  snakemake <- new("SnakemakeStub",
+                   input=list(gff=paste("..", "cfg", design, "knockouts.gff", sep="/"),
+                              pool_in=paste("..", "tests", "data", design, paste0(replicate, "-in.count.tab"), sep="/"),
+                              pool_out=paste("..", "tests", "data", design, paste0(replicate, "-out.count.tab"), sep="/"),
+                              stats_in=paste("..", "tests", "data", design, paste0(replicate, "-in.stats.tab"), sep="/"),
+                              stats_out=paste("..", "tests", "data", design, paste0(replicate, "-out.stats.tab"), sep="/"),
+                              trumicount_pdf_in=paste("..", "tests", "data", design, paste0(replicate, "-in.count.pdf"), sep="/"),
+                              trumicount_pdf_out=paste("..", "tests", "data", design, paste0(replicate, "-out.count.pdf"), sep="/"),
+                              fastqc_html_in_r1=paste("..", "tests", "data", design, paste0(replicate, "-in.fastqc.1.html"), sep="/"),
+                              fastqc_html_in_r2=paste("..", "tests", "data", design, paste0(replicate, "-in.fastqc.2.html"), sep="/"),
+                              fastqc_html_out_r1=paste("..", "tests", "data", design, paste0(replicate, "-out.fastqc.1.html"), sep="/"),
+                              fastqc_html_out_r2=paste("..", "tests", "data", design, paste0(replicate, "-out.fastqc.2.html"), sep="/")),
+                   output=list(table=paste("..", "tests", "data", design, paste0(replicate, "dv.tab"), sep="/")))
+}
+
 knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE,
