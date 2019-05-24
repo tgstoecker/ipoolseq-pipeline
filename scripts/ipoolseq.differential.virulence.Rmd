@@ -370,7 +370,7 @@ null.model <- counts[is.neutral & (n.in > 0) & (n.out > 0), {
   ipsmodel.fit(n.out=n.out, n.in=n.in, l.out=loss.out, l.in=loss.in)
 }]
 knitr::kable(signif(null.model, digits=3),
-             col.names=c('Scale (lambda)', 'Dispersion (d)'))
+             col.names=c('Relative output library size (lambda)', 'Squared CV of biological noise (d)'))
 ```
 
 Parameter $\lambda$ measurs the relative size of the output library (in loss-corrected total number of UMIs) compared to the input. Parameter $d$ represents squared coefficient of variation of the output abundances due to *biological noise*, i.e. due to differences in the growth of neutral mutants.
