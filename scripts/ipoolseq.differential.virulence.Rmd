@@ -267,7 +267,7 @@ p.corr.out <- d <- group.by.knockout(counts.flank.out)[, {
 }]
 subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
-layout(width=1000, height=600)
+layout(width=800, height=600)
 ```
 
 ## Correlation of Input and Output Abundances
@@ -321,7 +321,10 @@ p.corr <- counts[, {
 }]
 subplot(list(p.raw, p.corr), nrows=1,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
-layout(width=1000, height=300)
+layout(width=600, height=300,
+       margin=list(l=0, r=0, t=50, b=50),
+       legend=list(orientation="h", bgcolor="lightgrey",
+                   x=0, y=-0.4, xanchor="left", yanchor="top"))
 ```
 
 ## Model Parameters
@@ -378,7 +381,7 @@ l2fc.high <- log2(pmax(qipsmodel(p=rep(1 - PLOT.FDR.THRESHOLD, along.with=a.in),
                                  n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) + 1, 0) /
                  ((1 - loss.out) * a.in * null.model$scale))
 
-plot_ly() %>%
+plot_ly(width=600, height=600) %>%
 add_trace(x=c(a.in, rev(a.in)),
           y=pmax(c(rev(cummin(rev(l2fc.low))),
                    cummax(rev(l2fc.high))),
@@ -413,7 +416,8 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
                   title="input abundance (loss-corr. #UMIs)"),
        yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
                           ceiling(max(results$log2fc, na.rm=TRUE))),
-                  title=paste0("log2 virulence fold change")))
+                  title=paste0("virulence log2 fold change")),
+       legend=list(x=0, y=-0.15, xanchor="left", yanchor="top"))
 ```
 
 ## Reduced virulence compared to the neutral reference set
