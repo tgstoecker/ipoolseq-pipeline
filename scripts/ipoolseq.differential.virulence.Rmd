@@ -52,6 +52,7 @@ date: "`r format(Sys.time(), "%d %B, %Y")`"
 ---
 
 ```{r setup, include=FALSE}
+# Configure knitr
 knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE,
@@ -59,11 +60,11 @@ knitr::opts_chunk$set(
 	cache = FALSE
 )
 
+# Load libraries
 library(data.table)
 library(DT)
 library(rtracklayer)
 library(plotly)
-
 source("scripts/ipoolseq.model.R")
 
 # Output '-' for NA values
