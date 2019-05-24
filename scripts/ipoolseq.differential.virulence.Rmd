@@ -1,7 +1,7 @@
 ---
 output:
-  pdf_document: default
-  html_document: default
+  rmdformats::readthedown:
+    highlight: kate
 # ipoolseq.differential.virulence.Rmd, Copyright 2016, 2017, 2018, 2019 Florian G. Pflug
 # 
 # This file is part of the iPool-Seq Analysis Pipeline
@@ -52,6 +52,10 @@ date: "`r format(Sys.time(), "%d %B, %Y")`"
 ---
 
 ```{r setup, include=FALSE}
+# Load output libraries
+library(knitr)
+library(rmdformats)
+
 # Configure knitr
 knitr::opts_chunk$set(
 	message = FALSE,
