@@ -365,18 +365,10 @@ write.table(results, file=snakemake@output$table, col.names=TRUE, sep="\t", row.
 ```
 
 ```{r plot_log2fc}
-# Create plot
-par(mar=c(4,4,1,1))
-plot.new()
-xmax <- 10**ceiling(max(log10(results$abundance.in), na.rm=TRUE))
-plot.window(xlim=c(1, xmax),
-            ylim=range(results$log2fc, -results$log2fc, na.rm=TRUE),
-            log="x")
-
-# Plot (approximate) insigificance region
+# Compute (approximate) insigificance region
 loss.out <- mean(results$loss.out, na.rm=TRUE)
 loss.in <- mean(results$loss.in, na.rm=TRUE)
-a.in <- 10**seq(from=0, to=log10(xmax), length.out=100)
+a.in <- 10**seq(from=0, to=2*log10(max(results$abundance.in, na.rm=TRUE)), length.out=200)
 l2fc.low <- log2(pmax(qipsmodel(p=rep(PLOT.FDR.THRESHOLD, along.with=a.in),
                                 scale=null.model$scale, disp=null.model$disp,
                                 n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) - 1, 0) /
@@ -385,27 +377,43 @@ l2fc.high <- log2(pmax(qipsmodel(p=rep(1 - PLOT.FDR.THRESHOLD, along.with=a.in),
                                  scale=null.model$scale, disp=null.model$disp,
                                  n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) + 1, 0) /
                  ((1 - loss.out) * a.in * null.model$scale))
-polygon(c(a.in, rev(a.in)),
-        pmax(c(rev(cummin(rev(l2fc.low))),
-               cummax(rev(l2fc.high))), par("usr")[3]-1),
-        border=NA, col="lightgrey", xpd=FALSE)
 
-# Plot points
-d <- results[abundance.in > 0][order(is.neutral, low.qval <= PLOT.FDR.THRESHOLD, high.qval <= PLOT.FDR.THRESHOLD), {
-  points(abundance.in,
-         ifelse(abundance.out == 0, par("usr")[3], log2fc),
-         xpd=NA,
-         pch=ifelse((abundance.in == 0) | (abundance.out == 0), 4, 1),
-         col=ifelse(is.neutral, 'darkgreen',
-                    ifelse(low.qval <= PLOT.FDR.THRESHOLD, 'red',
-                           ifelse(high.qval <= PLOT.FDR.THRESHOLD, 'blue',
-                                  'darkgrey'))))
-
-# Axis
-axis(side=1)
-axis(side=2)
-title(xlab="Input Abundance", ylab=expression(paste(log[2], " fold change in output vs. neutral")))
-}]
+plot_ly() %>%
+add_trace(x=c(a.in, rev(a.in)),
+          y=pmax(c(rev(cummin(rev(l2fc.low))),
+                   cummax(rev(l2fc.high))),
+                 10*min(results$log2fc, 0, na.rm=TRUE)),
+          name='insignificant area (approximate, without FDR correction)',
+          type='scatter', mode='none', fill='toself', fillcolor='lightgrey') %>%
+add_trace(x=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), abundance.in],
+          y=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), log2fc],
+          text=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), knockout],
+          name='insignificant change of virulence',
+          marker=list(symbol="circle-open", color='darkgrey'),
+          type="scatter", mode="markers") %>%
+add_trace(x=results[is.neutral==TRUE, abundance.in],
+          y=results[is.neutral==TRUE, log2fc],
+          text=results[is.neutral==TRUE, knockout],
+          name='neutral reference set',
+          marker=list(symbol="circle-open", color='darkgreen'),
+          type="scatter", mode="markers") %>%
+add_trace(x=results[low.qval <= PLOT.FDR.THRESHOLD, abundance.in],
+          y=results[low.qval <= PLOT.FDR.THRESHOLD, log2fc],
+          text=results[low.qval <= PLOT.FDR.THRESHOLD, knockout],
+          name='significantly reduced virulence',
+          marker=list(symbol="circle-open", color='red'),
+          type="scatter", mode="markers") %>%
+add_trace(x=results[high.qval <= PLOT.FDR.THRESHOLD, abundance.in],
+          y=results[high.qval <= PLOT.FDR.THRESHOLD, log2fc],
+          text=results[high.qval <= PLOT.FDR.THRESHOLD, knockout],
+          name='significantly increased virulence',
+          marker=list(symbol="circle-open", color='blue'),
+          type="scatter", mode="markers") %>%
+layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE))), type="log",
+                  title="input abundance (loss-corr. #UMIs)"),
+       yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
+                          ceiling(max(results$log2fc, na.rm=TRUE))),
+                  title=paste0("log2 virulence fold change")))
 ```
 
 ## Depletion of knockouts in the output compared to neutral knockout
