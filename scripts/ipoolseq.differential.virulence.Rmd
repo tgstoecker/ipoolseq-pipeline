@@ -146,11 +146,13 @@ counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))
 
 # 1. Files
 
+The following table lists the main input files used to compute differential virulences, and the name of the generated output table. The output table lists, for each knockout, the change in virulence (as a log2 fold change of normalized output abundance relative to the neutral reference set), and p-values (plus FDR-corrected q-values) for the significance of the change.
+
 ```{r table_files}
 knitr::kable(data.frame(row.names=c("knockouts",
                                     "input pool (pre-infection) knockout abundances ",
                                     "output pool (post-infection) knockout abundances",
-                                    "log2 fold changes & significance"),
+                                    "virulence log2 fold changes & significance"),
                         file=c(snakemake@input$gff,
                                make_link(basename(snakemake@input$pool_in)),
                                make_link(basename(snakemake@input$pool_out)),
@@ -165,7 +167,8 @@ knitr::kable(data.frame(row.names=c("knockouts",
 
 ## Sequencing and Trimming
 
-FastQC reports for the trimmed reads
+FastQC reports for the trimmed reads. There should be little or no remaining adapter content, and per-base qualities should not drop too much at the end of the reads, otherwise further trimming might be required.
+
 ```{r table_fastqc}
 knitr::kable(data.frame(
   row.names=c("Read 1", "Read 2"),
@@ -179,7 +182,10 @@ knitr::kable(data.frame(
 
 ## Read and UMI count statistics
 
-The number of read pairs after each of the analysis steps
+The number of remaining read pairs and the number of unique UMIs within these pairs after each analysis step. The percentages are relatie to the *first* number within each column. Since unique UMIs are determined for the 5' and 3' flank of each knockout, no UMI counts are reported until reads have been assigned to the individual knockouts (and their flanks).
+
+Also check the *TRUmiCount report* (found above unter *1. Files*) for details about the performance of the TRUmiCount UMI filtering step.
+
 ```{r table_stats_in}
 message("Loading statistics from ", snakemake@input$stats_in)
 stats_in <- read.table(snakemake@input$stats_in, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
@@ -202,9 +208,9 @@ for(c in c('#Reads Input', '#UMIs Input', '#Reads Output', '#UMIs Output')) {
 knitr::kable(stats)
 ```
 
-For the distribution of the number of reads per UMI, see the *TRUmiCount reports* linked in the list of files above.
-
 ## Correlation of 3' and 5' Flank Abundances
+
+Since the abundance of each knockout is measured twice, once for the 5' and once for the 3' flank of the knockout cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of the raw and TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each knockout.
 
 ```{r table_corr_flanks}
 group.by.knockout <- function(data) {
@@ -235,6 +241,8 @@ knitr::kable(data.table(
   group.by.knockout(counts.flank.out)[, cor(n5p/(1-l5p), n3p/(1-l3p), use='complete.obs')])
 ), digits=3)
 ```
+
+The following plots show the correlation of 5' and 3' UMI counts (again raw and loss-corrected by TRUmiCount) in more detail.
 
 ```{r plot_corr_flanks, fig.height=6, fig.width=8}
 p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
@@ -271,10 +279,20 @@ p.corr.out <- d <- group.by.knockout(counts.flank.out)[, {
 }]
 subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
-layout(width=800, height=600)
+layout(width=600, height=600,
+       margin=list(l=0, r=0, t=50, b=50),
+       legend=list(orientation="h", bgcolor="lightgrey",
+                   x=0, y=-0.2, xanchor="left", yanchor="top"))
 ```
 
+__________
+(Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
+
 ## Correlation of Input and Output Abundances
+
+In iPool-Seq-based screens, the abundances of the different knockout strains are often spread over multiple orders of magnitude, and differences in input abundances can thus affect the abundance in the output more strongly than effects of the knockout on the strain's virulence. The statistical model used to detect significant changes of virulence corrects for differences in input abundance by assuming that for neutral knockouts, input and output abundances are proportional.
+
+The following table shows the observed correlation of (loss-corrected by TRUmiCount) input and output abundances (averaged across the 5' and 3' flank measurements)
 
 ```{r table_corr_io}
 group.by.knockout <- function(data) {
@@ -295,6 +313,8 @@ knitr::kable(data.table(
   counts[, cor(abundance.in, abundance.out, use='complete.obs')])
 ), digits=3)
 ```
+
+The following plots show the correlation of input and output abundances in more detail.
 
 ```{r plot_corr_io, fig.height=3, fig.width=8}
 p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
@@ -331,7 +351,18 @@ layout(width=600, height=300,
                    x=0, y=-0.4, xanchor="left", yanchor="top"))
 ```
 
+__________
+(Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
+
 ## Model Parameters
+
+The (raw) output abundance (i.e. UMI count) $N_\text{out}$ of a neutral knockout given its (raw) input abundance $N_\text{in}$ and TRUmiCount-estimated loss $\ell_\text{in}$ in the input and $\ell_\text{out}$ in the output is modelled with the following negative binomial model
+
+$$
+N_\text{out} \,|\, N_\text{in} \;\sim\; \text{NegBin}\left(\mu:=N_\text{in}\cdot\lambda\cdot\frac{1-\ell_\text{out}}{1-\ell_\text{in}}, r:=\frac{N_\text{in}}{1+d\cdot N_\text{in}}\right).
+$$
+
+The optimal (likelihood-maximazing) values for parameters $\lambda$ and $d$ for the reference set of neutral knockouts are:
 
 ```{r fit_model}
 # Fit null model
@@ -342,9 +373,15 @@ knitr::kable(signif(null.model, digits=3),
              col.names=c('Scale (lambda)', 'Dispersion (d)'))
 ```
 
+Parameter $\lambda$ measurs the relative size of the output library (in loss-corrected total number of UMIs) compared to the input. Parameter $d$ represents squared coefficient of variation of the output abundances due to *biological noise*, i.e. due to differences in the growth of neutral mutants.
+
 # 3. Results
 
-## Virulence relative to the neutral reference set
+For every knockout strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
+
+$$
+\log_2 \delta v = \log_2 \frac{N_\text{out} / (1-\ell_\text{out})}{N_\text{in} / (1-\ell_\text{in})}.
+$$
 
 ```{r sig_test}
 # Compute log2 fold changes and p-values
@@ -370,6 +407,10 @@ results[, high.qval := p.adjust(high.pval, method='BH')]
 # Write output table
 write.table(results, file=snakemake@output$table, col.names=TRUE, sep="\t", row.names=FALSE)
 ```
+
+## Virulence relative to the neutral reference set
+
+Due to the negative binomial model (see *Model Parameters*), the power to detect changes in virulence increases with the input abundance of a knockout. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which knockout have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
 
 ```{r plot_log2fc}
 # Compute (approximate) insigificance region
@@ -424,7 +465,12 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
        legend=list(x=0, y=-0.15, xanchor="left", yanchor="top"))
 ```
 
+__________
+(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by TRUmiCount. Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
+
 ## Reduced virulence compared to the neutral reference set
+
+The following table lists p-values and (FDR-corrected) q-values for the virulence log2 fold-change being significantly smaller than zero, i.e. for the virulence being reduced compared to the neutral reference set
 
 ```{r table_depleted}
 DT::datatable(results[!is.na(log2fc), list(
@@ -434,9 +480,12 @@ DT::datatable(results[!is.na(log2fc), list(
   formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
+__________
 (*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
 
 ## Increased virulence compared to the neutral reference set
+
+The following table lists p-values and (FDR-corrected) q-values for the virulence log2 fold-change being significantly larger than zero, i.e. for the virulence being increased compared to the neutral reference set
 
 ```{r table_enriched}
 DT::datatable(results[!is.na(log2fc), list(
@@ -446,4 +495,5 @@ DT::datatable(results[!is.na(log2fc), list(
   formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
+__________
 (*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
