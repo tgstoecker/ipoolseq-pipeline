@@ -21,7 +21,6 @@ library(rmarkdown)
 rmarkdown::render(input="scripts/ipoolseq.differential.virulence.Rmd",
                   output_file=basename(snakemake@output$`html`),
                   output_dir=normalizePath(dirname(snakemake@output$`html`)),
-                  output_format="html_document",
                   runtime="static",
                   intermediates_dir=tempdir(),
                   knit_root_dir=getwd(),
