@@ -342,4 +342,8 @@ rule differential_virulence:
 	output:
 		table="data/{dir}/{exp}.dv.tab",
 		html="data/{dir}/{exp}.dv.html"
+	params:
+		version=VERSION,
+		dir="{dir}",
+		exp="{exp}"
 	script:	"scripts/ipoolseq.differential.virulence.R"
