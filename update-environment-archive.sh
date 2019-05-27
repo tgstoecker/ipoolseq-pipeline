@@ -34,6 +34,10 @@ echo "*** Making $ENVDIR self-contained"
 mkdir -p "$ENVDIR"/pkgs || return
 conda config --env --add pkgs_dirs "$ENVDIR"/pkgs || return
 
+echo "*** Enabling strict channel priority for $ENVDIR"
+mkdir -p "$ENVDIR"/pkgs || return
+conda config --env --set channel_priority strict || return
+
 echo "*** Installing packages into $ENVDIR ..."
 conda env update -f environment.yaml -p "$ENVDIR" --prune || return
 
