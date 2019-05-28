@@ -257,7 +257,7 @@ p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
               marker=list(symbol="x")) %>%
   layout(xaxis=list(type="log", title=paste0(type, " #UMIs 5'")),
          yaxis=list(type="log", title=paste0(type, " #UMIs 3'")),
-         annotations=list(x=0.5, y=1, text = main, xanchor="center", yanchor="bottom",
+         annotations=list(x=0.4, y=1, text = main, xanchor="center", yanchor="bottom",
                           xref='paper', yref='paper',
                           showarrow=F, font=list(size=15)))
 }
@@ -269,10 +269,10 @@ p.raw.out <- group.by.knockout(counts.flank.out)[, {
   p(n5p, n3p, knockout, main="Output 5' vs. 3' flank (raw)", type="Raw")
 }]
 p.corr.in <- d <- group.by.knockout(counts.flank.in)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Input 5' vs. 3' flank (loss-corrected)", type="Loss-corr.")
+  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
 p.corr.out <- d <- group.by.knockout(counts.flank.out)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Output 5' vs. 3' flank (loss-corrected)", type="Loss-corr.")
+  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
 subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
