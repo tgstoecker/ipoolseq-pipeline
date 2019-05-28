@@ -338,7 +338,8 @@ rule differential_virulence:
 		fastqc_html_out_r1="data/{dir}/{exp}-out.fastqc.1.html",
 		fastqc_html_out_r2="data/{dir}/{exp}-out.fastqc.2.html",
 		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
-		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf"
+		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf",
+		rmd="scripts/ipoolseq.differential.virulence.Rmd"
 	output:
 		table="data/{dir}/{exp}.dv.tab",
 		html="data/{dir}/{exp}.dv.html"
@@ -346,4 +347,4 @@ rule differential_virulence:
 		version=VERSION,
 		dir="{dir}",
 		exp="{exp}"
-	script:	"scripts/ipoolseq.differential.virulence.R"
+	script:	"scripts/rmarkdown.render.R"
