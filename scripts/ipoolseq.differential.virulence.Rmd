@@ -471,14 +471,18 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 
 ```{r table_depleted}
 DT::datatable(results[!is.na(log2fc), list(
-  knockout, is.neutral, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
-)], filter="top") %>%
-  formatRound(columns=c("log2fc"), digits=2) %>%
-  formatSignif(columns=c("pval", "qval"), digits=2)
+    knockout, is.neutral, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
+  )],
+  filter="top", rownames=FALSE,
+  options=list(order=list(2, 'asc'),
+               searchCols = list(NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
+) %>%
+formatRound(columns=c("log2fc"), digits=2) %>%
+formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
 __________
-(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only knockouts with *qval* <= 0.1 are shown, remove the column filter to show all)
 
 ## Increased virulence compared to the neutral reference set
 
@@ -487,10 +491,14 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 ```{r table_enriched}
 DT::datatable(results[!is.na(log2fc), list(
   knockout, is.neutral, log2fc, pval=high.pval, qval=high.qval, sig=sig.stars(high.qval)
-)], filter="top") %>%
-  formatRound(columns=c("log2fc"), digits=2) %>%
-  formatSignif(columns=c("pval", "qval"), digits=2)
+  )],
+  filter="top", rownames=FALSE,
+  options=list(order=list(2, 'desc'),
+               searchCols = list(NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
+) %>%
+formatRound(columns=c("log2fc"), digits=2) %>%
+formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
 __________
-(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1)
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only knockouts with *qval* <= 0.1 are shown, remove the column filter to show all)
