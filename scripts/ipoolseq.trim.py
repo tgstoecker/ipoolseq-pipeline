@@ -429,5 +429,8 @@ if __name__ == '__main__':
     output2.close()
     log()
   except KeyboardInterrupt:
+    print("interrupted, aborting...", file=sys.stderr)
+    sys.stderr.flush()
     pool.terminate()
     pool.join()
+    sys.exit(1)
