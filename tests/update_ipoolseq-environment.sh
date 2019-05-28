@@ -28,6 +28,7 @@ echo "*** Linking current environment and install script into container context"
 ln ../install-environment.sh ipoolseq-environment.ctx/
 ln ../environment.tar.gz ipoolseq-environment.ctx/
 ln ../environment.rev ipoolseq-environment.ctx/
+ln ../environment.sha256 ipoolseq-environment.ctx/
 
 # Build the container
 echo "*** Building container ipoolseq-environment containing the current environment"

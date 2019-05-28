@@ -4,6 +4,7 @@ LABEL environment-rev=$ENVIRONMENT_REV
 
 RUN mkdir /ipoolseq-pipeline
 COPY ipoolseq-environment.ctx/environment.rev /ipoolseq-pipeline/
+COPY ipoolseq-environment.ctx/environment.sha256 /ipoolseq-pipeline/
 COPY ipoolseq-environment.ctx/environment.tar.gz /ipoolseq-pipeline/
 COPY ipoolseq-environment.ctx/install-environment.sh /ipoolseq-pipeline/
 
