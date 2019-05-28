@@ -329,7 +329,7 @@ p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
               marker=list(symbol="x")) %>%
   layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
          yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
-         annotations=list(x=0.5, y=1, text = main, xanchor="center", yanchor="bottom",
+         annotations=list(x=0.4, y=1, text=main, xanchor="center", yanchor="bottom",
                           xref='paper', yref='paper',
                           showarrow=F, font=list(size=15)))
 }
