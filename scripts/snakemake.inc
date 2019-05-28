@@ -30,7 +30,7 @@ else:
 	SCRATCH_DIR = os.path.abspath(os.path.join(os.path.dirname(srcdir("snakemake.inc")), "../data/tmp"))
 
 # Create scratch directory
-print("Temporary files will go to %s" % SCRATCH_DIR, file=sys.stderr)
+print("Temporary files will go to %s\n(modify environment variables SCRATCHDIR and/or USER to change this)" % SCRATCH_DIR, file=sys.stderr)
 if not os.path.exists(SCRATCH_DIR):
 	os.makedirs(SCRATCH_DIR)
 
