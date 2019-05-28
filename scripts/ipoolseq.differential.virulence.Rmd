@@ -1,4 +1,7 @@
 ---
+title: "Differential Virulence Report for `r snakemake@params$exp` (`r snakemake@params$dir`)"
+author: "iPoolSeq-Pipeline `r snakemake@params$version`"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   rmdformats::readthedown:
     highlight: kate
@@ -44,12 +47,6 @@ snakemake <- new("SnakemakeStub",
                              dir=design, exp=replicate),
                  output=list(table=paste("..", "tests", "data", design, paste0(replicate, "dv.tab"), sep="/")))
 ```
-
----
-title: "Differential Virulence Report for `r snakemake@params$exp` (`r snakemake@params$dir`)"
-author: "iPoolSeq-Pipeline `r snakemake@params$version`"
-date: "`r format(Sys.time(), "%d %B, %Y")`"
----
 
 ```{r setup, include=FALSE}
 # Load output libraries
