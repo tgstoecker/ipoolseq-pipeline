@@ -351,7 +351,9 @@ layout(width=600, height=300,
 __________
 (Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
 
-## Statistical Model and Model Parameters
+# 3. Results
+
+## Statistical Model and Parameters
 
 The (raw) output UMI count $N_\text{out}$ of a neutral knockout given its (raw) input UMI count $N_\text{in}$ and TRUmiCount-estimated loss (i.e. fraction of lost UMIs) $\ell_\text{in}$ for the input and $\ell_\text{out}$ for the output is modelled with the following negative binomial model
 
@@ -372,7 +374,7 @@ knitr::kable(signif(null.model, digits=3),
 
 Parameter $\lambda$ measurs the relative size of the output library (i.e. loss-corrected total number of UMIs per neutral knockout) compared to the input. Parameter $d$ represents squared coefficient of variation of the output abundances due to *biological noise*, i.e. due to differences in the growth of neutral mutants.
 
-# 3. Results
+## Differential virulence to the neutral reference set
 
 For every knockout strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses (i.e. fraction of lost UMIs) $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
 
@@ -405,9 +407,7 @@ results[, high.qval := p.adjust(high.pval, method='BH')]
 write.table(results, file=snakemake@output$table, col.names=TRUE, sep="\t", row.names=FALSE)
 ```
 
-## Virulence relative to the neutral reference set
-
-Due to the negative binomial model (see *Model Parameters*), the power to detect changes in virulence increases with the input abundance of a knockout. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which knockout have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
+Due to the negative binomial model (see *Statistical Model and Parameters*), the power to detect changes in virulence increases with the input abundance of a knockout. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which knockout have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
 
 ```{r plot_log2fc}
 # Compute (approximate) insigificance region
