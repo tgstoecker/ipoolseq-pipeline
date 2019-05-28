@@ -1,6 +1,6 @@
 ---
 title: "Differential Virulence Report for `r snakemake@params$exp` (`r snakemake@params$dir`)"
-author: "iPoolSeq-Pipeline `r snakemake@params$version`"
+author: "[iPoolSeq-Pipeline](http://www.cibiv.at/software/ipoolseq-pipeline) `r snakemake@params$version`"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   rmdformats::readthedown:
@@ -23,6 +23,12 @@ output:
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 ---
+
+<style>
+// With readthedown, the author name is printed on a dark background,
+// making the default dark red link color illegible. Use white instead.
+#postamble .author a { color: white }
+</style>
 
 ```{r stub, include=FALSE, eval=FALSE}
 # Set "eval=TRUE" above to run this chunk interactively in R Studio,
