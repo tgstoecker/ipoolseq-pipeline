@@ -392,11 +392,28 @@ where the first two are of technical nature and represent the variation due to (
 
 The optimal (likelihood-maximazing) values for parameters $\lambda$ and $d$ for the reference set of neutral knockouts are:
 
-```{r fit_model}
-# Fit null model
-null.model <- counts[is.neutral & (n.in > 0) & (n.out > 0), {
-  ipsmodel.fit(n.out=n.out, n.in=n.in, l.out=loss.out, l.in=loss.in)
-}]
+```{r fit_model, warning=TRUE}
+# Counts to fit model against
+counts.paramest <- counts[is.neutral & (n.in > 0) & (n.out > 0) & (loss.in < 1) & (loss.out < 1)]
+# Fallback scaling factor (lambda) -- simply the quotient of the loss-corr. means
+scale.fallback <- counts.paramest[, mean(n.out/(1-loss.out), na.rm=TRUE) / mean(n.in/(1-loss.in), na.rm=TRUE)]
+null.model <- if (nrow(counts.paramest) >= 2) {
+  # Enough datapoints to fit model
+  tryCatch(counts.paramest[, ipsmodel.fit(n.out=n.out, n.in=n.in, l.out=loss.out, l.in=loss.in)],
+           error=function(e) {
+             # Error during fitting, warn and use fallback
+             warning(paste0("Model parameter estimation failed: ", conditionMessage(e)),
+                     call.=FALSE);
+             data.table(scale=scale.fallback, disp=NA_real_)
+  })
+} else {
+  # To few data points, warn and use fallback
+  warning(paste0("Model parameter estimation failed: ",
+                 "too few mutants in the neutral reference were detected in both ",
+                 "input and output (need 2, found ", nrow(counts.paramest), ")"),
+          call.=FALSE)
+  data.table(scale=scale.fallback, disp=NA_real_)
+}
 knitr::kable(signif(null.model, digits=3),
              col.names=c('Relative output library size (lambda)', 'Biological contribution to squared CV (d)'))
 ```
@@ -468,6 +485,12 @@ add_trace(x=results[is.neutral==TRUE, abundance.in],
           text=results[is.neutral==TRUE, knockout],
           name='neutral reference set',
           marker=list(symbol="circle-open", color='darkgreen'),
+          type="scatter", mode="markers") %>%
+add_trace(x=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), abundance.in],
+          y=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), log2fc],
+          text=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), knockout],
+          name='non-neutral',
+          marker=list(symbol="circle-open", color='black'),
           type="scatter", mode="markers") %>%
 add_trace(x=results[low.qval <= PLOT.FDR.THRESHOLD, abundance.in],
           y=results[low.qval <= PLOT.FDR.THRESHOLD, log2fc],
