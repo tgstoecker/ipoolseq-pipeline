@@ -25,9 +25,24 @@ output:
 ---
 
 <style>
-// With readthedown, the author name is printed on a dark background,
-// making the default dark red link color illegible. Use white instead.
-#postamble .author a { color: white }
+/* With readthedown, the author name is printed on a dark background,
+ * making the default dark red link color illegible. Use white instead,
+ * and use the same hover effect as in the main document.
+ */
+#postamble .author a {
+  color: white;
+  background-image: linear-gradient(180deg,#d64a70,#d64a70);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 2em;
+  font-weight: 300;
+  padding: .125em 1px 0 1px;
+  transition: background-position .15s, color .15s
+}
+#postamble .author a:hover {
+  text-decoration: none;
+  background-position: 0 0.3em;
+}
 </style>
 
 ```{r stub, include=FALSE, eval=FALSE}
