@@ -185,7 +185,7 @@ knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
 
 ## Sequencing and Trimming
 
-FastQC reports for the trimmed reads. There should be little or no remaining adapter content, and per-base qualities should not drop too much at the end of the reads, otherwise further trimming might be required.
+[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) reports for the trimmed reads. There should be little or no remaining adapter content, and per-base qualities should not drop too much at the end of the reads, otherwise further trimming might be required.
 
 ```{r table_fastqc}
 knitr::kable(data.frame(
@@ -202,7 +202,7 @@ knitr::kable(data.frame(
 
 The number of remaining read pairs and the number of unique UMIs within these pairs after each analysis step. The percentages are relative to the *first* number within each column. Since unique UMIs are determined for the 5' and 3' flank of each knockout, no UMI counts are reported until reads have been assigned to the individual knockouts (and their flanks).
 
-Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the TRUmiCount UMI filtering step.
+Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](www.cibiv.at/software/trumicount) UMI filtering step.
 
 ```{r table_stats_in}
 message("Loading statistics from ", snakemake@input$stats_in)
@@ -484,7 +484,7 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
 ```
 
 __________
-(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by TRUmiCount. Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
+(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by [TRUmiCount](www.cibiv.at/software/trumicount). Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
 
 ## Reduced virulence compared to the neutral reference set
 
