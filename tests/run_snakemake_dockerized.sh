@@ -11,13 +11,8 @@ mkdir -p "$LOG_DIR"
 # Update the container containing the conda enironment if necessary
 ./update_ipoolseq-environment.sh
 
-# Add the pipeline code to the container created or updated above
-mkdir -p ipoolseq-pipeline.ctx
-cp ../Snakefile ../VERSION ipoolseq-pipeline.ctx
-cp -r ../scripts ipoolseq-pipeline.ctx
-cp -r ../cfg ipoolseq-pipeline.ctx
-docker build --tag ipoolseq-pipeline --file=ipoolseq-pipeline.Dockerfile .
-echo "*** Container ipoolseq-pipeline contains the up-to-date pipeline code"
+# Update the container containing the pipeline code if necessary
+./update_ipoolseq-pipeline.sh
 
 # Run the pipeline
 docker run --rm \
