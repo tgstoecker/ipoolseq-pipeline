@@ -423,8 +423,10 @@ knitr::kable(signif(null.model, digits=3),
 For every knockout strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses (i.e. fraction of lost UMIs) $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
 
 $$
-\log_2 \Delta v = \log_2 \frac{N_\text{out} / (1-\ell_\text{out})}{N_\text{in} / (1-\ell_\text{in})}.
+\log_2 \Delta v = \log_2 \frac{N_\text{out} / (1-\ell_\text{out})}{\lambda\cdot N_\text{in} / (1-\ell_\text{in})}.
 $$
+
+($\lambda$ is the relative size of the outpout library compared to the input library, see *Statistical Model and Parameters*)
 
 ```{r sig_test}
 # Compute log2 fold changes and p-values
