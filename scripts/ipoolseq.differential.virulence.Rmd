@@ -202,7 +202,7 @@ knitr::kable(data.frame(
 
 The number of remaining read pairs and the number of unique UMIs within these pairs after each analysis step. The percentages are relative to the *first* number within each column. Since unique UMIs are determined for the 5' and 3' flank of each knockout, no UMI counts are reported until reads have been assigned to the individual knockouts (and their flanks).
 
-Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](www.cibiv.at/software/trumicount) UMI filtering step.
+Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](http://www.cibiv.at/software/trumicount) UMI filtering step.
 
 ```{r table_stats_in}
 message("Loading statistics from ", snakemake@input$stats_in)
@@ -418,7 +418,7 @@ knitr::kable(signif(null.model, digits=3),
              col.names=c('Relative output library size (lambda)', 'Biological contribution to squared CV (d)'))
 ```
 
-## Differential virulence to the neutral reference set
+## Differential virulence compared to the neutral reference set
 
 For every knockout strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses (i.e. fraction of lost UMIs) $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
 
@@ -515,7 +515,7 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
 ```
 
 __________
-(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by [TRUmiCount](www.cibiv.at/software/trumicount). Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
+(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by [TRUmiCount](http://www.cibiv.at/software/trumicount). Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
 
 ## Reduced virulence compared to the neutral reference set
 
