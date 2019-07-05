@@ -60,10 +60,19 @@ should be adjusted to the number of cores available.
 
 # More Information
 
-See http://www.cibiv.at/software/ipoolseq-pipeline
+See http://www.cibiv.at/software/ipoolseq-pipeline, and our
+[publication (Uhse *et al.*, 2019)](http://doi.org/10.1002/cppb.20097) in
+*Current Protocols in Plant Biology* that describes both the web-lab and the
+data-analysis parts of iPool-Seq in detail, and include a step-by-step
+description of how to use this pipeline.
 
 # References
 
-Uhse et al. (2018). In vivo insertion pool sequencing identifies virulence factors
-in a complex fungal–host interaction. *PLoS Biology* 16(4), 2018.
-DOI: [10.1371/journal.pbio.2005129](https://doi.org/10.1371/journal.pbio.2005129)
+Simon Uhse, Florian G. Pflug, Arndt von Haeseler, Armin Djamei (2019). Insertion pool sequencing
+for insertional mutant analysis in complex host-microbe interactions. *Current Protocols in
+Plant Biology* 4: e20097. DOI: [http://doi.org/10.1002/cppb.20097](http://doi.org/10.1002/cppb.20097)
+
+Simon Uhse, Florian G. Pflug, Stirnberg Alexandra, Ehrlinger Klaus, Arndt von Haeseler,
+Armin Djamei (2018). In vivo insertion pool sequencing identifies virulence factors in
+a complex fungal–host interaction. *PLoS Biology* 16(4): e2005129. DOI:
+[10.1371/journal.pbio.2005129](https://doi.org/10.1371/journal.pbio.2005129)

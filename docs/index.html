@@ -12,8 +12,8 @@
     <header class="inner">
       <div id="top">
         <a id="sample_output_banner" class="top_banner" href="sample_output/expA.r1.dv.html">Sample Output</a>
-        <!-- <a id="publication_banner" class="top_banner"  href="">Publication</a> -->
-        <a id="forkme_banner" class="top_banner"  href="https://github.com/Cibiv/ipoolseq-pipeline">View on GitHub</a>
+        <a id="publication_banner" class="top_banner" href="http://doi.org/10.1002/cppb.20097">Publication</a>
+        <a id="forkme_banner" class="top_banner"  href="http://github.com/Cibiv/ipoolseq-pipeline">View on GitHub</a>
       </div>
       <div id="bottom" class="bottom">
         <a class="bottom_banner" href='#license'>
@@ -34,7 +34,8 @@
 
 <h2>Description</h2>
 
-The iPool-Seq (<a href="https://doi.org/10.1371/journal.pbio.2005129">Uhse et al. 2018</a>)
+The iPool-Seq (<a href="http://doi.org/10.1371/journal.pbio.2005129">Uhse <i>et al.</i> 2018</a>,
+<a href="http://doi.org/10.1002/cppb.20097">Uhse <i>et al.</i>2019</a>)
 protocol enables large-scale insertional mutagenesis screens of pathogens such as
 <i>U. maydis</i> (maize smut). It uses a combination of tagmentation, affinity
 purification and unique molecular identifiers (UMIs) to overcome the problem of the
@@ -49,15 +50,15 @@ and different sequencing depths and detection efficiencies between different lib
 <p>
 Our <b>iPool-Seq analysis pipeline</a> is based on the
 <a href="http://www.cibiv.at/software/trumicount">TRUmiCount</a> algorithm
-(<a href="https://doi.org/10.1093/bioinformatics/bty283">Pflug et al. 2018</a>) for the
+(<a href="http://doi.org/10.1093/bioinformatics/bty283">Pflug et al. 2018</a>) for the
 quantitative analysis of UMI data, and takes are of all steps of the analysis of iPool-Seq
 data. From from raw sequencing reads it computes the differential virulences of the mutants
 in the pre-infection pool compared to a set of reference mutants.
 
 <h2>Using the Pipeline</h2>
 
-<h3>Downloading from <a href='https://github.com/Cibiv/ipoolseq-pipeline/releases'><img src='images/github.png' class="inlineimg"></a></h3>
-Download the <a href="https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip">
+<h3>Downloading from <a href='http://github.com/Cibiv/ipoolseq-pipeline/releases'><img src='images/github.png' class="inlineimg"></a></h3>
+Download the <a href="http://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip">
 latest release</a> of the iPool-Seq analysis pipeline, and unzip it. On a Linux
 terminal, this is achieved with
 <pre>
@@ -68,16 +69,16 @@ tar xzf $VER.tar.gz
 cd ipoolseq-pipeline-$VER
 </pre>
 
-<h3>Installing a <a href='https://bioconda.github.io/'><img src='images/bioconda.png' class="inlineimg"></a>
+<h3>Installing a <a href='http://bioconda.github.io/'><img src='images/bioconda.png' class="inlineimg"></a>
 environment containing all necessary dependencies
 </h3>
 
-The file <var>environment.yaml</var> defines a <a href='https://conda.io/'>
+The file <var>environment.yaml</var> defines a <a href='http://conda.io/'>
 <img src='images/conda.png' class="inlineimg"></a> environment that
 provides all programs necessary for running the iPool-Seq analysis pipeline. To
 ensure reproducibility of that environment even if Conda packages are replaced
 and removed, our source code repository also contains <var>environment.tar.gz</var>,
-a <a href="https://conda.github.io/conda-pack/">conda-pack</a> archive of that
+a <a href="http://conda.github.io/conda-pack/">conda-pack</a> archive of that
 environent. To unpack that environment into <var>./environment</var> and make it
 usable, run
 
@@ -93,7 +94,7 @@ source ./environment/bin/activate
 </pre>
 
 <h3>Testing the installation</h3>
-The iPool-Seq protocol was introduced by <a href="https://doi.org/10.1371/journal.pbio.2005129">
+The iPool-Seq protocol was introduced by <a href="http://doi.org/10.1371/journal.pbio.2005129">
 Uhse et al</a>. To download and analyse their experiment A1 with the iPool-Seq
 pipeline, run
 <pre>
@@ -106,24 +107,28 @@ virulence analysis for the mutants screened by Uhse et al, and produces an accom
 that can be viewed with a web browser.
 
 <h3>Analyzing your own data</h3>
-Run
+See our <a href="http://doi.org/10.1002/cppb.20097">publication (Uhse <i>et
+al.</i>, 2019)</a> in <i>Current Protocols in Plant Biology</i></a> that describes both the web-lab
+and the data-analysis parts of iPool-Seq in detail, and includes a step-by-step description of
+how to use this pipeline.
+<p>
+For a brief overview of the necessary input files, run
 <pre>snakemake help</pre>
-for a brief overview of the necessary input files
 
 <h2>Publications</h2>
 Simon Uhse, Florian G. Pflug, Arndt von Haeseler, Armin Djamei (2019). Insertion pool sequencing
 for insertional mutant analysis in complex host-microbe interactions. <i>Current Protocols in
-Plant Biology</i> (to appear). DOI: <a href="http://doi.org/10.1002/cppb.20097">10.1002/cppb.20097</a>
+Plant Biology</i> 4: e20097. DOI: <a href="http://doi.org/10.1002/cppb.20097">10.1002/cppb.20097</a>
 <p>
 Simon Uhse, Florian G. Pflug, Stirnberg Alexandra, Ehrlinger Klaus, Arndt von Haeseler,
 Armin Djamei (2018). In vivo insertion pool sequencing identifies virulence factors in
 a complex fungal–host interaction. <i>PLoS Biology</i> 16(4): e2005129. DOI:
-<a href="https://doi.org/10.1371/journal.pbio.2005129">10.1371/journal.pbio.2005129</a>
+<a href="http://doi.org/10.1371/journal.pbio.2005129">10.1371/journal.pbio.2005129</a>
 <p>
 Florian G. Pflug, Arndt von Haeseler (2018). TRUmiCount: correctly counting absolute
 numbers of molecules using unique molecular identifiers. <i>Bioinformatics</i> Volume 34,
 Issue 18, 15 September 2018, Pages 3137–3144. DOI:
-<a href="https://doi.org/10.1093/bioinformatics/bty283">10.1093/bioinformatics/bty283</a>
+<a href="http://doi.org/10.1093/bioinformatics/bty283">10.1093/bioinformatics/bty283</a>
 
 <h2><a name='license'></a>License</h2>
 The iPool-Seq pipeline is free software: you can redistribute it and/or modify it under
