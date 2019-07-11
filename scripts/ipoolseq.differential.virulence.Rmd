@@ -382,7 +382,7 @@ $$
 N_\text{out} \,|\, N_\text{in} \;\sim\; \text{NegBin}\left(\mu:=N_\text{in}\cdot\lambda\cdot\frac{1-\ell_\text{out}}{1-\ell_\text{in}}, r:=\frac{N_\text{in}}{1+d\cdot N_\text{in}}\right).
 $$
 
-(UMI counts of 5' and 3' flanks are added to obtain $N_\text{in}$ and $N_\text{out}$, losses for 5' and 3' flanks are averaged to obtain $\ell_\text{in}$ and $\ell_\text{out}$). Parameter $\lambda$ measures the relative size of the output library (i.e. loss-corrected total number of UMIs per neutral knockout) compared to the input. Parameter $d$ represents the biological contribution to the squared [coefficient of variation](http://en.wikipedia.org/wiki/Coefficient_of_variation) of the (raw) output UMI counts $N_\text{out}$. The total squared coefficient of variation $\text{CV}^2 = \mu^2 / \sigma^2$ of $N_\text{out}$ (where $\mu$ is the mean and $\sigma^2$ the variance of $N_\text{out}$) comprises three contributors,
+(UMI counts of 5' and 3' flanks are added to obtain $N_\text{in}$ and $N_\text{out}$, losses for 5' and 3' flanks are averaged to obtain $\ell_\text{in}$ and $\ell_\text{out}$). Parameter $\lambda$ measures the relative size of the output library (i.e. loss-corrected total number of UMIs per neutral knockout) compared to the input. Parameter $d$ represents the biological contribution to the squared [coefficient of variation](http://en.wikipedia.org/wiki/Coefficient_of_variation) of the (raw) output UMI counts $N_\text{out}$. The total squared coefficient of variation $\text{CV}^2 = \sigma^2 / \mu^2$ of $N_\text{out}$ (where $\mu$ is the mean and $\sigma^2$ the variance of $N_\text{out}$) comprises three contributors,
 
 $$
   \text{CV}^2 = \frac{1}{\mu} + \frac{1}{N_\text{in}} + d,
