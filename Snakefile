@@ -279,6 +279,7 @@ rule trumicount_pe:
 		bam="data/{dir}/{lib}.assign.bam",
 		bai="data/{dir}/{lib}.assign.bai"
 	output: counts="data/{dir}/{lib}.count.tab",
+		readdist="data/{dir}/{lib}.readdist.tab",
 		plot="data/{dir}/{lib}.count.pdf"
 	log:	"data/{dir}/{lib}.count.log"
 	params:
@@ -292,6 +293,7 @@ rule trumicount_pe:
 		"  --include-filter-statistics\\\n"
 		"  --output-counts {output.counts:q}\\\n"
 		"  --output-plot {output.plot:q}\\\n"
+		"  --output-readdist {output.readdist:q}\\\n"
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
                 "  --molecules 1\\\n"
