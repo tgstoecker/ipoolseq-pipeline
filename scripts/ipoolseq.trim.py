@@ -35,6 +35,7 @@ from Bio import SeqIO
 # Command-line arguments
 parser = argparse.ArgumentParser(description='Trim non-genomic sequences')
 parser.add_argument('cassette', help='Fasta file containing 5p and 3p KO cassette sequence', nargs=1)
+parser.add_argument('flanks', help='Flanks to expect to be present in the sequenced library (5p, 3p or both)', nargs=1)
 parser.add_argument('input_r1', help='Input read 1 in FASTQ format', nargs=1)
 parser.add_argument('input_r2', help='Input read 2 in FASTQ format', nargs=1)
 parser.add_argument('output_r1', help='Input read 1 in FASTQ format', nargs=1)
@@ -45,17 +46,30 @@ ifile2 = args.input_r2[0]
 ofile1 = args.output_r1[0]
 ofile2 = args.output_r2[0]
 cassette = SeqIO.to_dict(SeqIO.parse(args.cassette[0], "fasta"))
-if ('5p' not in cassette) or ('3p' not in cassette):
-  raise RuntimeError('FASTA cassette file must contain sequences named 5p and 3p')
-CASSETTE_5P = str(cassette['5p'].seq)
-CASSETTE_3P = str(cassette['3p'].seq)
+flanks = args.flanks[0]
+if (flanks == "both"):
+  if ('5p' not in cassette) or ('3p' not in cassette):
+    raise RuntimeError('FASTA cassette file must contain sequences named 5p and 3p')
+  CASSETTE_5P = str(cassette['5p'].seq)
+  CASSETTE_3P = str(cassette['3p'].seq)
+elif flanks == "5p":
+  if '5p' not in cassette:
+    raise RuntimeError('FASTA cassette file must contain sequences named 5p')
+  CASSETTE_5P = str(cassette['5p'].seq)
+  CASSETTE_3P = None
+elif flanks == "3p":
+  if '3p' not in cassette:
+    raise RuntimeError('FASTA cassette file must contain sequences named 3p')
+  CASSETTE_5P = None
+  CASSETTE_3P = str(cassette['3p'].seq)
 
 CORES = int(os.environ.get('THREADS', '1'))
 print("Reading reads from %s and %s" % (ifile1, ifile2), file=sys.stderr)
 print("Writing reads to %s and %s" % (ofile1, ofile2), file=sys.stderr)
 print("Using %d core(s)" % (CORES), file=sys.stderr)
-print("Cassete 5'-end (5'->3' on strand -): %s" % (CASSETTE_5P), file=sys.stderr)
-print("Cassete 3'-end (5'->3' on strand +): %s" % (CASSETTE_3P), file=sys.stderr)
+print("Cassete flanks: %s" % flanks, file=sys.stderr)
+print("Cassete 5'-end (5'->3' on strand -): %s" % (CASSETTE_5P if CASSETTE_5P is not None else "-"), file=sys.stderr)
+print("Cassete 3'-end (5'->3' on strand +): %s" % (CASSETTE_3P if CASSETTE_3P is not None else "-"), file=sys.stderr)
 
 # Reverse-complement a sequence
 DNA_REVCOMP = str.maketrans("ACGT", "TGCA")
@@ -103,15 +117,15 @@ TRIM_MAX_5PFILLER = 1
 Ri_USE_BARCODE = [ True, False ]
 R1_PATTERN = regex.compile('^(?P<trim>(?P<i5p>[ACGTN]{0,%d})(?P<bc>[AGCT]{12})(%s))(?P<seq>[ACGTN]*)$' % (
   TRIM_MAX_5PFILLER,
-  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R1))
+  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R1) if t is not None)
 ), regex.BESTMATCH | regex.V1)
 R2_PATTERN = regex.compile('^(?P<trim>(?P<i5p>[ACGTN]{0,%d})(%s))(?P<seq>[ACGTN]*)$' % (
   TRIM_MAX_5PFILLER,
-  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R2))
+  "|".join("(?P<t%d>(%s){s<=%d})" % (i+1, t, TRIM_MAX_MM) for i, t in enumerate(TRIM_R2) if t is not None)
 ), regex.BESTMATCH | regex.V1)
 Ri_PATTERN = [ R1_PATTERN, R2_PATTERN ]
 R2_PATTERN_RC = regex.compile("%s" % (
-  "|".join('(?P<t%d>(%s){s<=%d})' % (i, revcomp(t), TRIM_MAX_MM) for i, t in enumerate(TRIM_R2))
+  "|".join('(?P<t%d>(%s){s<=%d})' % (i, revcomp(t), TRIM_MAX_MM) for i, t in enumerate(TRIM_R2) if t is not None)
 ), regex.BESTMATCH | regex.V1)
 
 # *** Overlap detection.

@@ -1,4 +1,4 @@
-# Snakefile, Copyright 2018, 2019 Florian G. Pflug
+# Snakefile, Copyright 2018, 2019, 2020 Florian G. Pflug
 #
 # This file is part of the iPool-Seq Analysis Pipeline
 #
@@ -182,6 +182,8 @@ rule ipoolseq_trim_pe:
 	output:
 		r1="data/{dir}/{lib}.trim.1.fq.gz",
 		r2="data/{dir}/{lib}.trim.2.fq.gz"
+	params:
+		lib="{lib}"
 	priority: 1
 	threads: 4
 	log:
@@ -189,8 +191,14 @@ rule ipoolseq_trim_pe:
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
+		"case {params.lib} in\\\n"
+		"  *:5p) LIB=5p;;\\\n"
+		"  *:3p) LIB=3p;;\\\n"
+		"  *) LIB=both;;\\\n"
+		"esac;\\\n"
 		"scripts/ipoolseq.trim.py\\\n"
 		"  {input.fa:q}\\\n"
+		"  $LIB\\\n"
 		"  {input.r1:q}\\\n"
 		"  {input.r2:q}\\\n"
 		"  {output.r1:q}\\\n"
