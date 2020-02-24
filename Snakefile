@@ -251,6 +251,24 @@ rule map_pe:
 		"  {output.bai:q}\\\n"
 		"  {params.opts:q}"
 
+rule ipoolseq_merge_flanks_pe:
+	"""Merge separately processed 5' and 3' libraries
+
+	If extraction efficiencies are differente for the 3' and 5' flanks, it can be beneficial
+	to amplify and sequence separate libraries, and merge them during processing
+	"""
+	input:
+		f5p="data/{dir}/{lib}:5p.map.bam",
+		f3p="data/{dir}/{lib}:3p.map.bam"
+	output:	"data/{dir}/{lib}.map.bam"
+	params:
+		scratch=default_scratch
+	threads: 4
+	shell:
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
+		"scripts/ipoolseq.merge.flanks.sh {input.f5p:q} {input.f3p:q} {output:q}"
+
 rule ipoolseq_assign_to_knockouts_pe:
 	"""Assign the mapped reads to the individual KO strains
 
