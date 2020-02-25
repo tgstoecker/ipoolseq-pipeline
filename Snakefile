@@ -204,6 +204,30 @@ rule ipoolseq_trim_pe:
 		"  {output.r1:q}\\\n"
 		"  {output.r2:q}"
 
+rule ipoolseq_merge_flanks_pe:
+	"""Merge separately processed 5' and 3' libraries
+
+	If extraction efficiencies are differente for the 3' and 5' flanks, it can be beneficial
+	to amplify and sequence separate libraries, and merge them during processing
+	"""
+	input:
+		f5p_r1="data/{dir}/{lib}:5p.trim.1.fq.gz",
+		f5p_r2="data/{dir}/{lib}:5p.trim.2.fq.gz",
+		f3p_r1="data/{dir}/{lib}:3p.trim.1.fq.gz",
+		f3p_r2="data/{dir}/{lib}:3p.trim.2.fq.gz"
+	output:
+		r1="data/{dir}/{lib}.trim.1.fq.gz",
+		r2="data/{dir}/{lib}.trim.2.fq.gz"
+	params:
+		scratch=default_scratch
+	threads: 2
+	shell:
+		"exec > >(tee {log:q}) 2>&1;\n"
+		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
+		"zcat {input.f5p_r1:q} {input.f3p_r1:q} | gzip -c > {output.r1:q} &\n"
+		"zcat {input.f5p_r2:q} {input.f3p_r2:q} | gzip -c > {output.r2:q} &\n"
+		"wait"
+
 rule fastqc_pe:
 	input:	"data/{dir}/{lib}.trim.{ri}.fq.gz",
 	output: "data/{dir}/{lib}.fastqc.{ri}.html",
@@ -251,23 +275,6 @@ rule map_pe:
 		"  {output.bai:q}\\\n"
 		"  {params.opts:q}"
 
-rule ipoolseq_merge_flanks_pe:
-	"""Merge separately processed 5' and 3' libraries
-
-	If extraction efficiencies are differente for the 3' and 5' flanks, it can be beneficial
-	to amplify and sequence separate libraries, and merge them during processing
-	"""
-	input:
-		f5p="data/{dir}/{lib}:5p.map.bam",
-		f3p="data/{dir}/{lib}:3p.map.bam"
-	output:	"data/{dir}/{lib}.map.bam"
-	params:
-		scratch=default_scratch
-	threads: 4
-	shell:
-		"exec > >(tee {log:q}) 2>&1;\n"
-		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
-		"scripts/ipoolseq.merge.flanks.sh {input.f5p:q} {input.f3p:q} {output:q}"
 
 rule ipoolseq_assign_to_knockouts_pe:
 	"""Assign the mapped reads to the individual KO strains
