@@ -112,6 +112,7 @@ def hamming_distance(s1, s2):
 # 
 TRIM_R1 = [ 'AGATGTGTATAAGAGACAG' ]
 TRIM_R2 = [ CASSETTE_5P, CASSETTE_3P ]
+TRIM_Ri = [ TRIM_R1, TRIM_R2 ]
 TRIM_MAX_MM = 4
 TRIM_MAX_5PFILLER = 1
 Ri_USE_BARCODE = [ True, False ]
@@ -141,7 +142,7 @@ OVERLAP_IDENTITY=0.9
 NAME_PATTERN = regex.compile('^(?P<bn>.*)/[12]$', regex.V1)
 
 # Holds the statistics collected while processings pairs
-Stats = namedlist('Stats', 'invalid_r1 invalid_r2 no_genomic overlap', default=0)
+Stats = namedlist('Stats', 'invalid_r1 invalid_r2 no_genomic flank_5p, flank_3p overlap', default=0)
 
 # Default
 DEBUG = False
@@ -339,11 +340,14 @@ def process(input):
 
   # Match sequences against patterns and trim, and collect barcodes
   p = [ None, None]
+  adapter = [ None, None ]
   bc = []
   valid = True
   for i in [0, 1]:
     p[i] = Ri_PATTERN[i].match(r.seq(i)) if Ri_PATTERN[i] else None
     if p[i] != None:
+      g = p[i].groupdict()
+      adapter[i] = next(j for j in range(0, len(TRIM_Ri[i])) if ("t%d" % (j+1)) in g)
       if Ri_USE_BARCODE[i]:
         bc.append(p[i].group('bc'))
       r.trim_5p(i, len(p[i].group('trim')))
@@ -370,10 +374,18 @@ def process(input):
   if r.len(0) == 0 and r.len(1) == 0:
     stats.no_genomic += 1
     return (stats, None, None)
+
+  # Count number of 5' and 3' flanks found in read 2
+  if adapter[1] == 0:
+    flank = "5p"
+    stats.flank_5p += 1
+  elif adapter[1] == 1:
+    flank = "3p"
+    stats.flank_3p += 1
   
   # Return transformed read pair 
-  return (stats, ("%s_%s/1" % (r_name, ":".join(bc)), r.seq(0), r.qual(0)),
-                 ("%s_%s/2" % (r_name, ":".join(bc)), r.seq(1), r.qual(1)))
+  return (stats, ("%s-%s_%s/1" % (r_name, flank, ":".join(bc)), r.seq(0), r.qual(0)),
+                 ("%s-%s_%s/2" % (r_name, flank, ":".join(bc)), r.seq(1), r.qual(1)))
 
 def init_worker():
   signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -404,6 +416,8 @@ if __name__ == '__main__':
         print("%d (%.2f%%) of pairs contained invalid 2nd read" % (stats.invalid_r2, float(100 * stats.invalid_r2) / float(written+skipped)), file=sys.stderr)
       print("%d (%.2f%%) of pairs contained no genomic sequence" % (stats.no_genomic, float(100 * stats.no_genomic) / float(written+skipped)), file=sys.stderr)
       print("%d (%.2f%%) of pairs written to %s and %s" % (written, float(100 * written) / float(written+skipped), ofile1, ofile2), file=sys.stderr)
+      print("%d (%.2f%%) of written pairs stemmed from the 5' flank" % (stats.flank_5p, float(100 * stats.flank_5p) / float(written)), file=sys.stderr)
+      print("%d (%.2f%%) of written pairs stemmed from the 3' flank" % (stats.flank_3p, float(100 * stats.flank_3p) / float(written)), file=sys.stderr)
       print("%d (%.2f%%) of pairs skipped" % (skipped, float(100 * skipped) / float(written+skipped)), file=sys.stderr)
       sys.stderr.flush()
     
@@ -418,6 +432,8 @@ if __name__ == '__main__':
       stats.invalid_r1 += stats_delta.invalid_r1
       stats.invalid_r2 += stats_delta.invalid_r2
       stats.no_genomic += stats_delta.no_genomic
+      stats.flank_5p += stats_delta.flank_5p
+      stats.flank_3p += stats_delta.flank_3p
       
       # Write trimmed reads to output files
       # Instead of empty reads, we write a single 'N' base and '!' quality
