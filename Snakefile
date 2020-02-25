@@ -275,6 +275,7 @@ rule map_pe:
 		"  {output.bai:q}\\\n"
 		"  {params.opts:q}"
 
+ruleorder: map_pe > bam_idx
 
 rule ipoolseq_assign_to_knockouts_pe:
 	"""Assign the mapped reads to the individual KO strains
