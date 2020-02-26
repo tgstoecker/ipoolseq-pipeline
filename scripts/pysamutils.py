@@ -401,10 +401,7 @@ class reorder_buffer:
     self.postponed.append(ph)
     return ph
   
-  def fillin(self, object, placeholder = None):
-    # If no placeholder is specified, assume it goes at the end
-    if placeholder == None:
-      return self.write(object)
+  def fillin(self, object, placeholder):
     # Validate placeholder
     if placeholder.__class__ != reorder_buffer.object_placeholder:
       raise TypeError('placeholder must be of type reorder_buffer.object_placeholder')
