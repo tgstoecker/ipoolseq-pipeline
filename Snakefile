@@ -180,53 +180,24 @@ rule ipoolseq_trim_pe:
 		r2="data/{dir}/{lib}.tom.2.fq.gz",
 		fa=config_input_file('cassette', "data/{dir}/{lib}.trim.1.fq.gz")
 	output:
-		r1="data/{dir}/{lib}.trim.1.fq.gz",
-		r2="data/{dir}/{lib}.trim.2.fq.gz"
+		r1="data/{dir}/{lib}:{flank}.trim.1.fq.gz",
+		r2="data/{dir}/{lib}:{flank}.trim.2.fq.gz"
 	params:
-		lib="{lib}"
+		flank="{flank}"
 	priority: 1
 	threads: 4
 	log:
-		"data/{dir}/{lib}.trim.log"
+		"data/{dir}/{lib}:{flank}.trim.log"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
-		"case {params.lib} in\\\n"
-		"  *:5p) LIB=5p;;\\\n"
-		"  *:3p) LIB=3p;;\\\n"
-		"  *) LIB=both;;\\\n"
-		"esac;\\\n"
 		"scripts/ipoolseq.trim.py\\\n"
 		"  {input.fa:q}\\\n"
-		"  $LIB\\\n"
+		"  {params.flank:q}\\\n"
 		"  {input.r1:q}\\\n"
 		"  {input.r2:q}\\\n"
 		"  {output.r1:q}\\\n"
 		"  {output.r2:q}"
-
-rule ipoolseq_merge_flanks_pe:
-	"""Merge separately processed 5' and 3' libraries
-
-	If extraction efficiencies are differente for the 3' and 5' flanks, it can be beneficial
-	to amplify and sequence separate libraries, and merge them during processing
-	"""
-	input:
-		f5p_r1="data/{dir}/{lib}:5p.trim.1.fq.gz",
-		f5p_r2="data/{dir}/{lib}:5p.trim.2.fq.gz",
-		f3p_r1="data/{dir}/{lib}:3p.trim.1.fq.gz",
-		f3p_r2="data/{dir}/{lib}:3p.trim.2.fq.gz"
-	output:
-		r1="data/{dir}/{lib}.trim.1.fq.gz",
-		r2="data/{dir}/{lib}.trim.2.fq.gz"
-	params:
-		scratch=default_scratch
-	threads: 2
-	shell:
-		"exec > >(tee {log:q}) 2>&1;\n"
-		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
-		"zcat {input.f5p_r1:q} {input.f3p_r1:q} | gzip -c > {output.r1:q} &\n"
-		"zcat {input.f5p_r2:q} {input.f3p_r2:q} | gzip -c > {output.r2:q} &\n"
-		"wait"
 
 rule fastqc_pe:
 	input:	"data/{dir}/{lib}.trim.{ri}.fq.gz",
@@ -277,29 +248,29 @@ rule map_pe:
 
 ruleorder: map_pe > bam_idx
 
-rule ipoolseq_assign_to_knockouts_pe:
-	"""Assign the mapped reads to the individual KO strains
+rule ipoolseq_assign_to_isites_pe:
+	"""Assign the mapped reads to transposon insertion sites
 
-	The output reads carry an XT tag that states the name of the KO strain (from the GFF files
-	showing the positions of the KO cassette insertions) and the flank (3' or 5') of the KO
-	cassette that the read belongs to, in the form '<Name>:{3,5}p'
-
-	The GFF file listing the KO cassette insertion positions is set via cfg/config.yaml
+	The output reads carry an XT tag that contains the chromosome, position and flank of
+	the insertion site. Insertion sites are only accepted if both 5' and 3' fragments are
+	found
 	"""
 	input:
-		bam="data/{dir}/{lib}.map.bam",
-		gff=config_input_file('knockouts', "data/{dir}/{lib}.assign.bam")
-	output:	"data/{dir}/{lib}.assign.bam"
+		bam_5p="data/{dir}/{lib}:5p.map.bam",
+		bam_3p="data/{dir}/{lib}:3p.map.bam"
+	output:
+		bam_5p="data/{dir}/{lib}:5p.assign.bam",
+		bam_3p="data/{dir}/{lib}:3p.assign.bam",
+		gff="data/{dir}/{lib}.isites.gff3.gz"
 	log:	"data/{dir}/{lib}.assign.log"
-	params:
-		opts=config_options('knockout_assignment'),
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
-		"scripts/ipoolseq.assign.to.knockouts.py\\\n"
-		"  {params.opts}\\\n"
-		"  {input.gff:q}\\\n"
-		"  {input.bam:q}\\\n"
-		"  {output:q}"
+		"scripts/ipoolseq.assign.to.isites.py\\\n"
+		"  --output-gff {output.gff:q}\\\n"
+		"  {input.bam_5p:q}\\\n"
+		"  {input.bam_3p:q}\\\n"
+		"  {output.bam_5p:q}\\\n"
+		"  {output.bam_3p:q}"
 
 rule trumicount_pe:
 	"""Computes the number of UMIs per flank (5' and 3') of each of the knockouts
