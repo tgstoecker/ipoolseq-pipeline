@@ -147,7 +147,6 @@ class read_pair_iterator:
 
         # 1. Fetch read
         #
-        sequence_changed = False
         try:
           r = self.iterator.__next__()
         except StopIteration:
