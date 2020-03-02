@@ -25,6 +25,7 @@ import pysamutils
 import gzip
 import pysam
 from pysamutils import read_pair_iterator
+from itertools import chain, groupby
 from collections import defaultdict
 
 # Returns the number of positions in which strings s1 and s2 differ
@@ -55,7 +56,7 @@ def unmapped_lengths(read):
     post = post + len
   return (pre, post) 
 
-def get_isite_data(read1, read2, bam):
+def get_isite_data(read1, read2, bam, flank):
   # Extract chromosome name
   seq = read2.reference_name
   seq_len = bam.get_reference_length(read2.reference_name)
@@ -66,11 +67,11 @@ def get_isite_data(read1, read2, bam):
   if not read2.is_reverse:
     pos = max(read2.reference_start - unmapped_lengths(read2)[0], 0)
     motif = read2.query_sequence[:len(args.motif)]
-    dir = "+"
+    dir = {"5p": "-", "3p": "+"}[flank]
   else:
     pos = min(read2.reference_end + unmapped_lengths(read2)[1], seq_len) - len(args.motif)
     motif = read2.query_sequence[-len(args.motif):]
-    dir = "-"
+    dir = {"5p": "+", "3p": "-"}[flank]
 
   return (seq, pos, dir, motif)
 
@@ -92,10 +93,27 @@ print('Writing assigned reads to %s and %s' % (args.output_bam_5p[0], args.outpu
 if args.output_gff is not None:
   print('Writing insertion sites in GFF3 format to %s' % args.output_gff, file=sys.stderr)
 
-# Insertion site sets, indexed by chromosome name and flank
-isites_raw = defaultdict(lambda: defaultdict(lambda: set()))
+# Insertion site sets
+#
+# An insertion at a particular site can have two possible orientations, "+" and "-".
+# For a "+"-strand insertion, reads originating at the 5' flank of the inserted cassette
+# map to the negative strand of the genome (i.e. map in reverse direction) and reads originating
+# at the 3' flank map to the positive strand (i.e. in forward direction). For a "-"-strand insertion,
+# its exactly the opposite (see also get_isite_data).
+#
+# Note that "5' flank" and "3' flank" refer to an arbitrarily chosen "reference strand" of the double-
+# stranded insertion, which is identified through its sequence (see ipoolseq.trim.py), and note that this
+# assumes that the inserted cassette is NOT palindromic.
+#
+# Tentative insertion sites found in reads are stored in isites_tentative and are indexed by
+# a three-level key comprising the chromosome, the strand, and the flank from which the reads
+# originated.
+#
+# Confirmed insertion sites are those for which both 5'- and 3'-originating reads where found,
+# these are stored in isites, indexed by chromosone and strand.
+isites_tentative = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: set())))
 
-# Find insertion sites
+# Find tentative insertion sites
 for flank in ['5p', '3p']:
   print("Finding insertion sites for %s flank" % flank, file=sys.stderr)
 
@@ -103,33 +121,36 @@ for flank in ['5p', '3p']:
   input = pysam.AlignmentFile(ifile, mode="rb")
   for read1, read2 in read_pair_iterator(input, item=[read_pair_iterator.READ_1, read_pair_iterator.READ_2]):
     # Get insertion site - related information
-    seq, pos, dir, motif = get_isite_data(read1, read2, input)
+    seq, pos, dir, motif = get_isite_data(read1, read2, input, flank)
 
     # Ignore reads where the motif differes from the expected motif by more than a single base
     if (hamming_distance(motif, args.motif) > 1):
       continue
 
     # Store insertion site
-    isites_raw[seq]["%s%s" % (flank, dir)].add(pos)
+    isites_tentative[seq][dir][flank].add(pos)
 
   # Done scanning reads
   input.close()
   
-# Filter insertion sites. Both 5' and 3' fragments must be found for a site,
-# and the two must map in opposite directions
-isites = {}
-for seq in isites_raw.keys():
-  isites[seq] = ((isites_raw[seq]["5p+"] & isites_raw[seq]["3p-"]) |
-                 (isites_raw[seq]["5p-"] & isites_raw[seq]["3p+"]))
-print("Found %d insertion sites with 3p and 5p reads" % sum(len(s) for s in isites.values()), file=sys.stderr)
+# Filter insertion sites by looking for sites which a 5'- and a 3'-signal.
+isites = defaultdict(lambda: defaultdict(lambda: set()))
+for seq, strands in isites_tentative.items():
+  for s in strands.keys():
+    isites[seq][s] = isites_tentative[seq][s]["3p"] & isites_tentative[seq][s]["5p"]
+print("Found %d +strand insertion sites confirmed by both 3p and 5p reads" % sum(len(strands["+"]) for strands in isites.values()), file=sys.stderr)
+print("Found %d -strand insertion sites confirmed by both 3p and 5p reads" % sum(len(strands["-"]) for strands in isites.values()), file=sys.stderr)
+print("Found %d insertion sites in total confirmed by both 3p and 5p reads" % sum(len(strands["+"] | strands["-"]) for strands in isites.values()), file=sys.stderr)
 
 # Output valid insertion sites as GFF3
 if args.output_gff is not None:
   gff = gzip.open(args.output_gff, 'wt', compresslevel=6)
-  for seq in isites.keys():
-    for pos in isites[seq]:
-      gff.write("{seq}\t.\t.\t{start}\t{end}\t{score}\t{strand}\t.\t{attrs}\n".format(
-                seq=seq, start=pos+1, end=pos+len(args.motif), score=".", strand=".", attrs=""))
+  for seq, strands in isites.items():
+    for pos, group in groupby(sorted(chain(strands["+"], strands["-"]))):
+      for s in strands.keys():
+        if pos in strands[s]:
+          gff.write("{seq}\t.\t.\t{start}\t{end}\t{score}\t{strand}\t.\t{attrs}\n".format(
+                    seq=seq, start=pos+1, end=pos+len(args.motif), score=".", strand=s, attrs=""))
   gff.close()
 
 # Assign reads
@@ -146,11 +167,11 @@ for flank in ['5p', '3p']:
   read_pairs = read_pair_iterator(input, item=[read_pair_iterator.READ_1, read_pair_iterator.READ_2], output=output)
   for read1, read2 in read_pairs:
     # Get insertion site - related information
-    seq, pos, dir, motif = get_isite_data(read1, read2, input)
+    seq, pos, dir, motif = get_isite_data(read1, read2, input, flank)
 
     # Set XT tag to insertion site
-    if pos in isites[seq]:
-      xt = "%s|%d:%s" % (seq, pos, flank)
+    if seq in isites and pos in isites[seq][dir]:
+      xt = "%s|%d%s" % (seq, pos, dir)
       read1.set_tag(tag="XT", value_type="Z", value=xt)
       read2.set_tag(tag="XT", value_type="Z", value=xt)
     else:
