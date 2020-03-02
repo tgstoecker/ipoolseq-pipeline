@@ -176,8 +176,8 @@ rule ipoolseq_trim_pe:
 	only genomic sequences -- the parts overlapping the KO cassette are removed
 	"""
 	input:
-		r1="data/{dir}/{lib}.tom.1.fq.gz",
-		r2="data/{dir}/{lib}.tom.2.fq.gz",
+		r1="data/{dir}/{lib}:{flank}.tom.1.fq.gz",
+		r2="data/{dir}/{lib}:{flank}.tom.2.fq.gz",
 		fa=config_input_file('cassette', "data/{dir}/{lib}.trim.1.fq.gz")
 	output:
 		r1="data/{dir}/{lib}:{flank}.trim.1.fq.gz",
