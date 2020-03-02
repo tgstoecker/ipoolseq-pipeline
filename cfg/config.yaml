@@ -33,3 +33,5 @@ trumicount:
     opts: '--threshold 5'
   - file: 'data/Uhse_et_al.2018/expB.r3-out.*'
     opts: '--threshold 9'
+  - file: 'data/Transposon/r77647-*'
+    opts: '--threshold 2 --plot-hist-xmax 40 --plot-hist-bin 1'
