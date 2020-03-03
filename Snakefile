@@ -312,7 +312,8 @@ rule read_stats:
 	"""Collects statistics about the number of reads and UMIs remaing after each step
 	"""
 	input:
-		raw="data/{dir}/{lib}.bam",
+		raw_r1="data/{dir}/{lib}.1.fq.gz",
+		raw_r2="data/{dir}/{lib}.2.fq.gz",
 		map="data/{dir}/{lib}.map.bam",
 		assign="data/{dir}/{lib}.assign.bam",
 		count="data/{dir}/{lib}.count.tab"
@@ -323,7 +324,8 @@ rule read_stats:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
 		"scripts/read_stats.sh\\\n"
-		"  {input.raw:q}\\\n"
+		"  {input.raw_r1:q}\\\n"
+		"  {input.raw_r2:q}\\\n"
 		"  {input.map:q}\\\n"
 		"  {input.assign:q}\\\n"
 		"  {input.count:q}\\\n"

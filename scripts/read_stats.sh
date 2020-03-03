@@ -17,7 +17,8 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
-INPUT_RAW="$1"; shift
+INPUT_RAW_R1="$1"; shift
+INPUT_RAW_R2="$1"; shift
 INPUT_MAP="$1"; shift
 INPUT_ASSIGN="$1"; shift
 INPUT_COUNT="$1"; shift
@@ -27,6 +28,13 @@ function bam_fragments() {
 	file="$1"; shift
 	# Count the number of unique read names (i.e. pairs)
 	count="$(samtools view $* "$file" | cut -f1 | sort --parallel ${THREADS:-1} -S 1G -u | wc -l)"
+	echo $count
+}
+
+function fastq_fragments() {
+	file="$1"; shift
+	# Count the number of unique read names (i.e. pairs)
+	count="$[$(zcat "$file" | wc -l) / 4]"
 	echo $count
 }
 
@@ -50,7 +58,7 @@ function assigned_bam_pattern_umis() {
 	echo -en "After Step\\t#Reads\\t#UMIs\\n";
 
 	echo -en "Sequencing\\t"
-	echo -en "$(bam_fragments "$INPUT_RAW")\\t"
+	echo -en "$(fastq_fragments "$INPUT_RAW_R1")\\t"
 	echo -en "-\\n"
 
 	echo -en "Trimming\\t"
