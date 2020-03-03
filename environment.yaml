@@ -3,7 +3,10 @@ channels:
   - conda-forge
   - bioconda
   - defaults
+  - cibiv
 dependencies:
+  - git
+  - git-lfs
   - bcbiogff>=0.6.4
   - biopython>=1.73
   - bzip2
@@ -26,4 +29,4 @@ dependencies:
   - snakemake>=5.4.5
   - trimmomatic>=0.39
   - trumicount>=0.9.13
-  - umi_tools=0.5.5
+  - umi_tools_tuc=0.5.3
