@@ -290,7 +290,7 @@ rule trumicount_pe:
 	log:	"data/{dir}/{lib}.count.log"
 	params:
 		opts=config_options('trumicount')
-	threads: 4
+	threads: 16
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"trumicount\\\n"
