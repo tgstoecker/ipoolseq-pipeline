@@ -171,7 +171,7 @@ for flank in ['5p', '3p']:
 
     # Set XT tag to insertion site
     if seq in isites and pos in isites[seq][dir]:
-      xt = "%s|%d%s" % (seq, pos, dir)
+      xt = "%s:%d(%s)" % (seq, pos, dir)
       read1.set_tag(tag="XT", value_type="Z", value=xt)
       read2.set_tag(tag="XT", value_type="Z", value=xt)
     else:
