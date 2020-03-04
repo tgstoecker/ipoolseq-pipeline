@@ -340,7 +340,7 @@ rule differential_virulence:
 	in the input pool
 	"""
 	input:
-		ann=config_input_file('reference_annotation', "data/{dir}/{exp}-in:5p.count.tab")
+		ann=config_input_file('reference_annotation', "data/{dir}/{exp}-in:5p.count.tab"),
 		isites_in="data/{dir}/{exp}-in.isites.gff3.gz",
 		isites_out="data/{dir}/{exp}-out.isites.gff3.gz",
 		pool_in_5p="data/{dir}/{exp}-in:5p.count.tab",
