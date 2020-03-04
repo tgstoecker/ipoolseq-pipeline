@@ -134,14 +134,25 @@ make_link <- function(path) {
 ```{r load}
 # Loading gene annotation
 message("Loading gene annotations from ", snakemake@input$ann)
-genes <- readGFF(snakemake@input$ann, version=3)
+annotations <- readGFFAsGRanges(snakemake@input$ann, version=3)
+genes <- genes[genes$type=="gene"]
 
 # Load list of knockouts, find assumed neutral set
 message("Loading insertion sites from ", snakemake@input$isites_in)
-knockouts <- readGFF(snakemake@input$isites_in, version=3)
+knockouts <- readGFFAsGRanges(snakemake@input$isites_in, version=3)
+# Assign knockouts to genes
+local({
+  hits <- findOverlaps(knockouts, genes, ignore.strand=TRUE)
+  knockouts$GeneID <<- NA_character_
+  knockouts$GeneID[queryHits(hits)] <<- genes[subjectHits(hits)]$ID
+  knockouts$GeneName <<- NA_character_
+  knockouts$GeneName[queryHits(hits)] <<- genes[subjectHits(hits)]$Name
+})
+# Mark knockouts not assigned to genes as neutral
+knockouts$Neutral <- ifelse(is.na(knockouts$GeneID), 1, 0)
 
-# TODO: Find neutral knockouts!
-NEUTRAL <- NULL
+# Find neutral knockouts!
+NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
 
 # Load UMI count tables produced by TRUmiCount
 load.trumicount.output <- function(file, flank) {
