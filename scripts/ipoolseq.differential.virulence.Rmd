@@ -132,35 +132,43 @@ make_link <- function(path) {
 
 ```{r load}
 # Load list of knockouts, find assumed neutral set
-message("Loading knockouts from ", snakemake@input$gff)
-knockouts <- readGFF(snakemake@input$gff, version=2)
-NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
+message("Loading insertion sites from ", snakemake@input$isites_in)
+knockouts <- readGFF(snakemake@input$isites_in, version=3)
+# TODO: Find neutral knockouts!
+NEUTRAL <- NULL
 
 # Load UMI count tables produced by TRUmiCount
-load.trumicount.output <- function(file) {
+load.trumicount.output <- function(file, flank) {
   message("Loading TRUmiCount results from ", file)
   t <- data.table(read.table(file, header=TRUE, sep='\t'))
-  # Make sure there are exactly two rows per knockout
-  allgenes <- data.table(gene=c(paste0(knockouts$Name, ':5p'),
-                                paste0(knockouts$Name, ':3p')))
-  t <- t[allgenes,, on="gene"]
+  # Make sure there is exactly one row per knockout
+  allgenes <- data.table(gene=knockouts$Name)[,, on="gene"]
   # The raw "gene" column contains <gene>:<flank>, split into two separate fields
-  t[, flank := sapply(strsplit(as.character(gene), split=":", fixed=TRUE), FUN=function(f) { f[2] }) ]
-  t[, knockout := sapply(strsplit(as.character(gene), split=":", fixed=TRUE), FUN=function(f) { f[1] }) ]
+  t[, knockout := gene ]
+  t[, knockout.chr := as.factor(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\1", gene)) ]
+  t[, knockout.pos := as.numeric(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\2", gene)) ]
+  t[, knockout.dir := as.factor(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\3", gene)) ]
+  t[, flank := flank ]
 }
-counts.flank.in <- load.trumicount.output(snakemake@input[["pool_in"]])
-counts.flank.out <- load.trumicount.output(snakemake@input[["pool_out"]])
+counts.flank.in.5p <- load.trumicount.output(snakemake@input[["pool_in_5p"]], "5p")
+counts.flank.in.3p <- load.trumicount.output(snakemake@input[["pool_in_3p"]], "3p")
+counts.flank.out.5p <- load.trumicount.output(snakemake@input[["pool_out_5p"]], "5p")
+counts.flank.out.3p <- load.trumicount.output(snakemake@input[["pool_out_3p"]], "3p")
+
+# Combine 5' and 3' data into a single table
+counts.flank.in <- rbind(counts.flank.in.5p, counts.flank.in.3p)
+counts.flank.out <- rbind(counts.flank.out.5p, counts.flank.out.3p)
 
 # Aggregate the data for the 5' and 3' flank of each gene.
 # We add the counts and average the losses of the two flanks for each gene,
-combine.flanks <- function(counts.flank) {
+aggregate.flanks <- function(counts.flank) {
   counts.flank[, list(
     n = sum(n.obs, na.rm=TRUE),
     loss = mean(loss, na.rm=TRUE)
   ), by="knockout"]
 }
-counts.in <- combine.flanks(counts.flank.in)
-counts.out <- combine.flanks(counts.flank.out)
+counts.in <- aggregate.flanks(counts.flank.in)
+counts.out <- aggregate.flanks(counts.flank.out)
 
 # Combine input and output pool data into a single table
 counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))[,list(
@@ -179,16 +187,22 @@ The following table lists the main input files used to compute differential viru
 
 ```{r table_files}
 knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
-                                    "knockout abundances in (pre-infection)  input pool",
-                                    "knockout abundances in (post-infection) output pool",
+                                    "5' knockout abundances in (pre-infection)  input pool",
+                                    "3' knockout abundances in (pre-infection)  input pool",
+                                    "5' knockout abundances in (post-infection) output pool",
+                                    "3' knockout abundances in (post-infection) output pool",
                                     "differential virulence results table"),
-                        file=c(snakemake@input$gff,
-                               make_link(basename(snakemake@input$pool_in)),
-                               make_link(basename(snakemake@input$pool_out)),
+                        file=c(snakemake@input$isites_in,
+                               make_link(basename(snakemake@input$pool_in_5p)),
+                               make_link(basename(snakemake@input$pool_in_3p)),
+                               make_link(basename(snakemake@input$pool_out_5p)),
+                               make_link(basename(snakemake@input$pool_out_3p)),
                                make_link(basename(snakemake@output$table))),
                         report=c("",
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in), ")"),
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out), ")"),
+                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in_5p), ")"),
+                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in_3p), ")"),
+                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out_5p), ")"),
+                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out_3p), ")"),
                                  "")))
 ```
 
@@ -200,11 +214,15 @@ knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
 
 ```{r table_fastqc}
 knitr::kable(data.frame(
-  row.names=c("Read 1", "Read 2"),
-  `Input pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_r1), ")"),
-                 paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_r2), ")")),
-  `Output pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_r1), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_r2), ")")),
+  row.names=c("5' Read 1", "5' Read 2", "3' Read 1", "3' Read 2"),
+  `Input pool` =c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_5p_r1), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_5p_r2), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_3p_r1), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_3p_r2), ")")),
+  `Output pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_5p_r1), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_5p_r2), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_3p_r1), ")"),
+                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_3p_r2), ")")),
   check.names=FALSE
 ))
 ```
@@ -216,19 +234,41 @@ The number of remaining read pairs and the number of unique UMIs within these pa
 Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](http://www.cibiv.at/software/trumicount) UMI filtering step.
 
 ```{r table_stats_in}
-message("Loading statistics from ", snakemake@input$stats_in)
-stats_in <- read.table(snakemake@input$stats_in, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
-message("Loading statistics from ", snakemake@input$stats_out)
-stats_out <- read.table(snakemake@input$stats_out, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+message("Loading statistics from ", snakemake@input$stats_in_5p)
+stats_in_5p <- read.table(snakemake@input$stats_in_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+message("Loading statistics from ", snakemake@input$stats_in_3p)
+stats_in_3p <- read.table(snakemake@input$stats_in_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
 
-stopifnot(all(stats_in$`After Step` == stats_out$`After Step`))
-stats <- data.frame(row.names=stats_in$`After Step`,
-                    `#Reads Input`=stats_in$`#Reads`,
-                    `#UMIs Input`=stats_in$`#UMIs`,
-                    `#Reads Output`=stats_out$`#Reads`,
-                    `#UMIs Output`=stats_out$`#UMIs`,
+stopifnot(all(stats_in_5p$`After Step` == stats_in_3p$`After Step`))
+stats <- data.frame(row.names=stats_in_5p$`After Step`,
+                    `#5\' Reads Input`=stats_in_5p$`#Reads`,
+                    `#3\' Reads Input`=stats_in_3p$`#Reads`,
+                    `#5\' UMIs Input`=stats_in_5p$`#UMIs`,
+                    `#3\' UMIs Input`=stats_in_3p$`#UMIs`,
                     check.names=FALSE)
-for(c in c('#Reads Input', '#UMIs Input', '#Reads Output', '#UMIs Output')) {
+for(c in c('#5\' Reads Input', '#3\' Reads Input', '#5\' UMIs Input', '#3\' UMIs Input')) {
+  stats[[c]] <- ifelse(!is.na(stats[[c]]),
+                       paste0(stats[[c]], " (",
+                              round(100*stats[[c]]/(stats[[c]][min(which(!is.na(stats[[c]])))])), "%)"),
+                       NA)
+}
+knitr::kable(stats)
+```
+
+```{r table_stats_out}
+message("Loading statistics from ", snakemake@input$stats_out_5p)
+stats_out_5p <- read.table(snakemake@input$stats_out_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+message("Loading statistics from ", snakemake@input$stats_out_3p)
+stats_out_3p <- read.table(snakemake@input$stats_out_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+
+stopifnot(all(stats_out_5p$`After Step` == stats_out_3p$`After Step`))
+stats <- data.frame(row.names=stats_out_5p$`After Step`,
+                    `#5\' Reads Output`=stats_out_5p$`#Reads`,
+                    `#3\' Reads Output`=stats_out_3p$`#Reads`,
+                    `#5\' UMIs Output`=stats_out_5p$`#UMIs`,
+                    `#3\' UMIs Output`=stats_out_3p$`#UMIs`,
+                    check.names=FALSE)
+for(c in c('#5\' Reads Output', '#3\' Reads Output', '#5\' UMIs Output', '#3\' UMIs Output')) {
   stats[[c]] <- ifelse(!is.na(stats[[c]]),
                        paste0(stats[[c]], " (",
                               round(100*stats[[c]]/(stats[[c]][min(which(!is.na(stats[[c]])))])), "%)"),
@@ -348,22 +388,24 @@ The following plots show the correlation of input and output abundances in more 
 ```{r plot_corr_io, fig.height=3, fig.width=8}
 p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
   missing <- !is.finite(abd.in) | (abd.in == 0) | !is.finite(abd.out) | (abd.out == 0)
-  plot_ly(showlegend=first) %>%
-  add_markers(x=abd.in[!missing],
-              y=abd.out[!missing],
-              color=I("black"),
-              text=labels[!missing], name="present in input and output", legendgroup="nz",
-              marker=list(symbol="circle-open")) %>%
-  add_markers(x=pmax(abd.in[missing], 1, na.rm=TRUE),
-              y=pmax(abd.out[missing], 1, na.rm=TRUE),
-              color=I("black"),
-              text=labels[missing], name="missing in input or output", legendgroup="z",
-              marker=list(symbol="x")) %>%
-  layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
-         yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
-         annotations=list(x=0.4, y=1, text=main, xanchor="center", yanchor="bottom",
-                          xref='paper', yref='paper',
-                          showarrow=F, font=list(size=15)))
+  o <- plot_ly(showlegend=first)
+  o <- o %>% add_markers(x=abd.in[!missing],
+                         y=abd.out[!missing],
+                         color=I("black"),
+                         text=labels[!missing], name="present in input and output", legendgroup="nz",
+                         marker=list(symbol="circle-open"))
+  if (any(missing))
+    o <- o %>% add_markers(x=pmax(abd.in[missing], 1, na.rm=TRUE),
+                           y=pmax(abd.out[missing], 1, na.rm=TRUE),
+                           color=I("black"),
+                           text=labels[missing], name="missing in input or output", legendgroup="z",
+                          marker=list(symbol="x"))
+  o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
+                    yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
+                    annotations=list(x=0.4, y=1, text=main, xanchor="center", yanchor="bottom",
+                                    xref='paper', yref='paper',
+                                    showarrow=F, font=list(size=15)))
+  o
 }
 
 p.raw <- counts[, {
