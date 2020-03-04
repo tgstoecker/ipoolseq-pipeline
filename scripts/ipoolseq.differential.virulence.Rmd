@@ -53,28 +53,29 @@ design <- "Transposon"
 replicate <- "r77647"
 setClass("SnakemakeStub", representation(input = "list", params = "list", output = "list"))
 snakemake <- new("SnakemakeStub",
-                 input=list(isites_in=paste("..", "tests", "data", design, paste0(replicate, "-in.isites.gff3.gz"), sep="/"),
-                            isites_out=paste("..", "tests", "data", design, paste0(replicate, "-out.isites.gff3.gz"), sep="/"),
-                            pool_in_5p=paste("..", "tests", "data", design, paste0(replicate, "-in:5p.count.tab"), sep="/"),
-                            pool_in_3p=paste("..", "tests", "data", design, paste0(replicate, "-in:3p.count.tab"), sep="/"),
-                            pool_out_5p=paste("..", "tests", "data", design, paste0(replicate, "-out:5p.count.tab"), sep="/"),
-                            pool_out_3p=paste("..", "tests", "data", design, paste0(replicate, "-out:3p.count.tab"), sep="/"),
-                            stats_in_5p=paste("..", "tests", "data", design, paste0(replicate, "-in:5p.stats.tab"), sep="/"),
-                            stats_in_3p=paste("..", "tests", "data", design, paste0(replicate, "-in:3p.stats.tab"), sep="/"),
-                            stats_out_5p=paste("..", "tests", "data", design, paste0(replicate, "-out:5p.stats.tab"), sep="/"),
-                            stats_out_3p=paste("..", "tests", "data", design, paste0(replicate, "-out:3p.stats.tab"), sep="/"),
-                            trumicount_pdf_in_5p=paste("..", "tests", "data", design, paste0(replicate, "-in:5p.count.pdf"), sep="/"),
-                            trumicount_pdf_in_3p=paste("..", "tests", "data", design, paste0(replicate, "-in:3p.count.pdf"), sep="/"),
-                            trumicount_pdf_out_5p=paste("..", "tests", "data", design, paste0(replicate, "-out:5p.count.pdf"), sep="/"),
-                            trumicount_pdf_out_3p=paste("..", "tests", "data", design, paste0(replicate, "-out:3p.count.pdf"), sep="/"),
-                            fastqc_html_in_5p_r1=paste("..", "tests", "data", design, paste0(replicate, "-in:5p.fastqc.1.html"), sep="/"),
-                            fastqc_html_in_5p_r2=paste("..", "tests", "data", design, paste0(replicate, "-in:5p.fastqc.2.html"), sep="/"),
-                            fastqc_html_in_3p_r1=paste("..", "tests", "data", design, paste0(replicate, "-in:3p.fastqc.1.html"), sep="/"),
-                            fastqc_html_in_3p_r2=paste("..", "tests", "data", design, paste0(replicate, "-in:3p.fastqc.2.html"), sep="/"),
-                            fastqc_html_out_5p_r1=paste("..", "tests", "data", design, paste0(replicate, "-out:5p.fastqc.1.html"), sep="/"),
-                            fastqc_html_out_5p_r2=paste("..", "tests", "data", design, paste0(replicate, "-out:5p.fastqc.2.html"), sep="/"),
-                            fastqc_html_out_3p_r1=paste("..", "tests", "data", design, paste0(replicate, "-out:3p.fastqc.1.html"), sep="/"),
-                            fastqc_html_out_3p_r2=paste("..", "tests", "data", design, paste0(replicate, "-out:3p.fastqc.2.html"), sep="/")),
+                 input=list(ann=paste("..", "cfg", design, "annotation.gff3.gz", sep="/"),
+                            isites_in=paste("..", "data", design, paste0(replicate, "-in.isites.gff3.gz"), sep="/"),
+                            isites_out=paste("..", "data", design, paste0(replicate, "-out.isites.gff3.gz"), sep="/"),
+                            pool_in_5p=paste("..", "data", design, paste0(replicate, "-in:5p.count.tab"), sep="/"),
+                            pool_in_3p=paste("..", "data", design, paste0(replicate, "-in:3p.count.tab"), sep="/"),
+                            pool_out_5p=paste("..", "data", design, paste0(replicate, "-out:5p.count.tab"), sep="/"),
+                            pool_out_3p=paste("..", "data", design, paste0(replicate, "-out:3p.count.tab"), sep="/"),
+                            stats_in_5p=paste("..", "data", design, paste0(replicate, "-in:5p.stats.tab"), sep="/"),
+                            stats_in_3p=paste("..", "data", design, paste0(replicate, "-in:3p.stats.tab"), sep="/"),
+                            stats_out_5p=paste("..", "data", design, paste0(replicate, "-out:5p.stats.tab"), sep="/"),
+                            stats_out_3p=paste("..", "data", design, paste0(replicate, "-out:3p.stats.tab"), sep="/"),
+                            trumicount_pdf_in_5p=paste("..", "data", design, paste0(replicate, "-in:5p.count.pdf"), sep="/"),
+                            trumicount_pdf_in_3p=paste("..", "data", design, paste0(replicate, "-in:3p.count.pdf"), sep="/"),
+                            trumicount_pdf_out_5p=paste("..", "data", design, paste0(replicate, "-out:5p.count.pdf"), sep="/"),
+                            trumicount_pdf_out_3p=paste("..", "data", design, paste0(replicate, "-out:3p.count.pdf"), sep="/"),
+                            fastqc_html_in_5p_r1=paste("..", "data", design, paste0(replicate, "-in:5p.fastqc.1.html"), sep="/"),
+                            fastqc_html_in_5p_r2=paste("..", "data", design, paste0(replicate, "-in:5p.fastqc.2.html"), sep="/"),
+                            fastqc_html_in_3p_r1=paste("..", "data", design, paste0(replicate, "-in:3p.fastqc.1.html"), sep="/"),
+                            fastqc_html_in_3p_r2=paste("..", "data", design, paste0(replicate, "-in:3p.fastqc.2.html"), sep="/"),
+                            fastqc_html_out_5p_r1=paste("..", "data", design, paste0(replicate, "-out:5p.fastqc.1.html"), sep="/"),
+                            fastqc_html_out_5p_r2=paste("..", "data", design, paste0(replicate, "-out:5p.fastqc.2.html"), sep="/"),
+                            fastqc_html_out_3p_r1=paste("..", "data", design, paste0(replicate, "-out:3p.fastqc.1.html"), sep="/"),
+                            fastqc_html_out_3p_r2=paste("..", "data", design, paste0(replicate, "-out:3p.fastqc.2.html"), sep="/")),
                  params=list(version={f <- file("../VERSION", "r"); v <- readLines(f, n=1); close(f); v},
                              dir=design, exp=replicate),
                  output=list(table=paste("..", "tests", "data", design, paste0(replicate, "dv.tab"), sep="/")))
@@ -131,9 +132,14 @@ make_link <- function(path) {
 ```
 
 ```{r load}
+# Loading gene annotation
+message("Loading gene annotations from ", snakemake@input$ann)
+genes <- readGFF(snakemake@input$ann, version=3)
+
 # Load list of knockouts, find assumed neutral set
 message("Loading insertion sites from ", snakemake@input$isites_in)
 knockouts <- readGFF(snakemake@input$isites_in, version=3)
+
 # TODO: Find neutral knockouts!
 NEUTRAL <- NULL
 
