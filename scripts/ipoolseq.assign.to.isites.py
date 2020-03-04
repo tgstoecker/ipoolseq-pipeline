@@ -21,9 +21,10 @@ import re
 import sys
 import argparse
 import copy
-import pysamutils
 import gzip
+import urllib.parse
 import pysam
+import pysamutils
 from pysamutils import read_pair_iterator
 from itertools import chain, groupby
 from collections import defaultdict
@@ -149,8 +150,13 @@ if args.output_gff is not None:
     for pos, group in groupby(sorted(chain(strands["+"], strands["-"]))):
       for s in strands.keys():
         if pos in strands[s]:
-          gff.write("{seq}\t.\t.\t{start}\t{end}\t{score}\t{strand}\t.\t{attrs}\n".format(
-                    seq=seq, start=pos+1, end=pos+len(args.motif), score=".", strand=s, attrs=""))
+          name = "%s:%d(%s)" % (seq, pos, s)
+          attrs = { "ID": name, "Name": name }
+          gff.write("{seq}\t.\t{type}\t{start}\t{end}\t{score}\t{strand}\t.\t{attrs}\n".format(
+                    seq=seq, type="transposable_element_insertion_site",
+                    start=pos+1, end=pos+len(args.motif), score=".", strand=s,
+                    attrs=";".join("%s=%s" % (urllib.parse.quote(k), urllib.parse.quote(v))
+                                   for k, v in attrs.items())))
   gff.close()
 
 # Assign reads
