@@ -135,7 +135,7 @@ make_link <- function(path) {
 # Loading gene annotation
 message("Loading gene annotations from ", snakemake@input$ann)
 annotations <- readGFFAsGRanges(snakemake@input$ann, version=3)
-genes <- genes[genes$type=="gene"]
+genes <- annotations[annotations$type=="gene"]
 
 # Load list of knockouts, find assumed neutral set
 message("Loading insertion sites from ", snakemake@input$isites_in)
