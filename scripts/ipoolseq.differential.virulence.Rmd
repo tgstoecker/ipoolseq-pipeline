@@ -126,8 +126,8 @@ sig.stars <- function(p) {
 }
 
 # Create a Markdown link
-make_link <- function(path) {
-  paste0('[', path, '](', path, ')')
+make_link <- function(path, text) {
+  paste0('[', if(missing(text)) path else text, '](', URLencode(path, reserved=TRUE), ')')
 }
 
 # Correlation with zero intercept
@@ -233,10 +233,10 @@ knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
                                make_link(basename(snakemake@input$pool_out_3p)),
                                make_link(basename(snakemake@output$table))),
                         report=c("",
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in_5p), ")"),
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_in_3p), ")"),
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out_5p), ")"),
-                                 paste0("[TRUmiCount report](", basename(snakemake@input$trumicount_pdf_out_3p), ")"),
+                                 make_link(basename(snakemake@input$trumicount_pdf_in_5p), "TRUmiCount report"),
+                                 make_link(basename(snakemake@input$trumicount_pdf_in_3p), "TRUmiCount report"),
+                                 make_link(basename(snakemake@input$trumicount_pdf_out_5p), "TRUmiCount report"),
+                                 make_link(basename(snakemake@input$trumicount_pdf_out_3p), "TRUmiCount report"),
                                  "")))
 ```
 
@@ -249,14 +249,14 @@ knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
 ```{r table_fastqc}
 knitr::kable(data.frame(
   row.names=c("5' Read 1", "5' Read 2", "3' Read 1", "3' Read 2"),
-  `Input pool` =c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_5p_r1), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_5p_r2), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_3p_r1), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_in_3p_r2), ")")),
-  `Output pool`=c(paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_5p_r1), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_5p_r2), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_3p_r1), ")"),
-                  paste0("[FastQC report](", basename(snakemake@input$fastqc_html_out_3p_r2), ")")),
+  `Input pool` =c(make_link(basename(snakemake@input$fastqc_html_in_5p_r1), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_in_5p_r2), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_in_3p_r1), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_in_3p_r2), "FastQC report")),
+  `Output pool`=c(make_link(basename(snakemake@input$fastqc_html_out_5p_r1), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_out_5p_r2), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_out_3p_r1), "FastQC report"),
+                  make_link(basename(snakemake@input$fastqc_html_out_3p_r2), "FastQC report")),
   check.names=FALSE
 ))
 ```
