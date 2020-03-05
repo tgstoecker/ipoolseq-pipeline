@@ -602,11 +602,11 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 
 ```{r table_depleted}
 DT::datatable(results[!is.na(log2fc), list(
-    knockout, is.neutral, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
+    knockout, is.neutral, gene_name, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
   )],
   filter="top", rownames=FALSE,
-  options=list(order=list(2, 'asc'),
-               searchCols = list(NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
+  options=list(order=list(3, 'asc'),
+               searchCols = list(NULL, NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
 ) %>%
 formatRound(columns=c("log2fc"), digits=2) %>%
 formatSignif(columns=c("pval", "qval"), digits=2)
@@ -621,11 +621,11 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 
 ```{r table_enriched}
 DT::datatable(results[!is.na(log2fc), list(
-  knockout, is.neutral, log2fc, pval=high.pval, qval=high.qval, sig=sig.stars(high.qval)
+  knockout, is.neutral, gene_name, log2fc, pval=high.pval, qval=high.qval, sig=sig.stars(high.qval)
   )],
   filter="top", rownames=FALSE,
-  options=list(order=list(2, 'desc'),
-               searchCols = list(NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
+  options=list(order=list(3, 'desc'),
+               searchCols = list(NULL, NULL, NULL, NULL, NULL, list(search='0 ... 0.1'), NULL))
 ) %>%
 formatRound(columns=c("log2fc"), digits=2) %>%
 formatSignif(columns=c("pval", "qval"), digits=2)
