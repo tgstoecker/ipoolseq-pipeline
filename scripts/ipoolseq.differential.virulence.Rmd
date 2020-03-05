@@ -129,6 +129,14 @@ sig.stars <- function(p) {
 make_link <- function(path) {
   paste0('[', path, '](', path, ')')
 }
+
+# Correlation with zero intercept
+cor.intercept0 <- function(x, y) {
+  i <- !is.na(x) & !is.na(y)
+  k <- sum(x[i] * y[i]) / sum(x[i]**2)
+  r.sq <- 1 - sum((y[i] - k*x[i])**2) / sum((y[i] - mean(y[i]))**2)
+  sqrt(r.sq)
+}
 ```
 
 ```{r load}
@@ -305,7 +313,7 @@ knitr::kable(stats)
 
 ## Correlation of 3' and 5' Flank Abundances
 
-Since the abundance of each knockout is measured twice, once for the 5' and once for the 3' flank of the knockout cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of both the raw, and the TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each knockout.
+Since the abundance of each knockout is measured twice, once for the 5' and once for the 3' flank of the knockout cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of both the raw, and the TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each knockout. Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
 ```{r table_corr_flanks}
 group.by.knockout <- function(data) {
@@ -329,11 +337,11 @@ knitr::kable(data.table(
   "Loss-corrected (after TRUmiCount)",
   "Loss-corrected (after TRUmiCount)"
   ),
-  `Correlation 5' vs. 3'`=c(
-  group.by.knockout(counts.flank.in)[, cor(n5p, n3p, use='complete.obs')],
-  group.by.knockout(counts.flank.out)[, cor(n5p, n3p, use='complete.obs')],
-  group.by.knockout(counts.flank.in)[, cor(n5p/(1-l5p), n3p/(1-l3p), use='complete.obs')],
-  group.by.knockout(counts.flank.out)[, cor(n5p/(1-l5p), n3p/(1-l3p), use='complete.obs')])
+  `Correlation 5' vs. 3 (intercept zero)'`=c(
+  group.by.knockout(counts.flank.in)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
+  group.by.knockout(counts.flank.out)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
+  group.by.knockout(counts.flank.in)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))],
+  group.by.knockout(counts.flank.out)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))])
 ), digits=3)
 ```
 
@@ -387,7 +395,7 @@ __________
 
 In iPool-Seq-based screens, the abundances of the different knockout strains are often spread over multiple orders of magnitude, and differences in input abundances can thus affect the abundance in the output more strongly than the mutant's phenotypes. The statistical model used to detect significant changes of virulence must thus take the input abundance into account, and assumes that for neutral knockouts, input and output abundances are proportional.
 
-The following table shows the observed correlation of (loss-corrected) input and output abundances (averaged across the 5' and 3' flank measurements)
+The following table shows the observed correlation of (loss-corrected) input and output abundances (averaged across the 5' and 3' flank measurements). Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
 ```{r table_corr_io}
 group.by.knockout <- function(data) {
@@ -404,8 +412,8 @@ knitr::kable(data.table(
   "Loss-corrected (after TRUmiCount)"
   ),
   `Correlation Input vs. Output`=c(
-  counts[, cor(n.in, n.out, use='complete.obs')],
-  counts[, cor(abundance.in, abundance.out, use='complete.obs')])
+  counts[, cor.intercept0(sqrt(n.in), sqrt(n.out))],
+  counts[, cor.intercept0(sqrt(abundance.in), sqrt(abundance.out))])
 ), digits=3)
 ```
 
