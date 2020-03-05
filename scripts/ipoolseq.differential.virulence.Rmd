@@ -196,8 +196,8 @@ counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))
   gene_id=NA_character_,
   n.in, loss.in,
   n.out, loss.out,
-  abundance.in=n.in / (2 * (1-loss.in)),
-  abundance.out=n.out / (2 * (1-loss.out))
+  abundance.in=ifelse(n.in > 0, n.in / (2 * (1-loss.in)), 0),
+  abundance.out=ifelse(n.out > 0, n.out / (2 * (1-loss.out)), 0)
 )]
 
 # Fill in gene_name and gene_id columns
@@ -348,8 +348,8 @@ p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
               color=I("black"),
               text=labels[!missing], name="UMIs found for 5' and 3' flank", legendgroup="nz",
               marker=list(symbol="circle-open")) %>%
-  add_markers(x=pmax(n.obs.5p[missing], 1, na.rm=TRUE),
-              y=pmax(n.obs.3p[missing], 1, na.rm=TRUE),
+  add_markers(x=pmax(n.obs.5p[missing], 0.5, na.rm=TRUE),
+              y=pmax(n.obs.3p[missing], 0.5, na.rm=TRUE),
               color=I("black"),
               text=labels[missing], name="No UMIs found for 5' or 3' flank", legendgroup="z",
               marker=list(symbol="x")) %>%
@@ -421,8 +421,8 @@ p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
                          text=labels[!missing], name="present in input and output", legendgroup="nz",
                          marker=list(symbol="circle-open"))
   if (any(missing))
-    o <- o %>% add_markers(x=pmax(abd.in[missing], 1, na.rm=TRUE),
-                           y=pmax(abd.out[missing], 1, na.rm=TRUE),
+    o <- o %>% add_markers(x=pmax(abd.in[missing], 0.5, na.rm=TRUE),
+                           y=pmax(abd.out[missing], 0.5, na.rm=TRUE),
                            color=I("black"),
                            text=labels[missing], name="missing in input or output", legendgroup="z",
                           marker=list(symbol="x"))
