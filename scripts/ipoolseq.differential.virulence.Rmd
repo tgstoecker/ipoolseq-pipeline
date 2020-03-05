@@ -155,16 +155,17 @@ knockouts$Neutral <- ifelse(is.na(knockouts$GeneID), 1, 0)
 NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
 
 # Load UMI count tables produced by TRUmiCount
+# Note that TRUmiCount thinks in terms of RNA-Seq and calls whatever key it used
+# to group and count reads a "gene". In our case that key is the cassette insertion
+# site, which is therefore stored in the column "gene" in TRUmiCount's output.
 load.trumicount.output <- function(file, flank) {
   message("Loading TRUmiCount results from ", file)
   t <- data.table(read.table(file, header=TRUE, sep='\t'))
-  # Make sure there is exactly one row per knockout
-  allgenes <- data.table(gene=knockouts$Name)[,, on="gene"]
-  # The raw "gene" column contains <gene>:<flank>, split into two separate fields
-  t[, knockout := gene ]
-  t[, knockout.chr := as.factor(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\1", gene)) ]
-  t[, knockout.pos := as.numeric(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\2", gene)) ]
-  t[, knockout.dir := as.factor(sub(as.character("^(.*):(\\d+)\\([+-]\\)$"), "\\\\3", gene)) ]
+  # Rename column "gene" to "knockout"
+  colnames(t) <- ifelse(colnames(t) == "gene", "knockout", colnames(t))
+  # Make sure there is exactly one row per knockout and add flank
+  allKOs <- data.table(knockout=knockouts$Name)
+  t <- t[allKOs,, on="knockout"]
   t[, flank := flank ]
 }
 counts.flank.in.5p <- load.trumicount.output(snakemake@input[["pool_in_5p"]], "5p")
@@ -191,11 +192,19 @@ counts.out <- aggregate.flanks(counts.flank.out)
 counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))[,list(
   knockout,
   is.neutral=knockout %in% NEUTRAL,
+  gene_name=NA_character_,
+  gene_id=NA_character_,
   n.in, loss.in,
   n.out, loss.out,
   abundance.in=n.in / (2 * (1-loss.in)),
   abundance.out=n.out / (2 * (1-loss.out))
 )]
+
+# Fill in gene_name and gene_id columns
+local({
+  allKOmeta <- data.table(knockout=knockouts$Name, gene_id=knockouts$GeneID, gene_name=knockouts$GeneName)
+  counts[, c("gene_id", "gene_name") := allKOmeta[counts, list(x.gene_id, x.gene_name), on=c("knockout")] ]
+})
 ```
 
 # 1. Files
@@ -501,7 +510,7 @@ $$
 ```{r sig_test}
 # Compute log2 fold changes and p-values
 results <- counts[, list(
-  knockout, is.neutral,
+  knockout, is.neutral, gene_id, gene_name,
   n.out, loss.out, abundance.out,
   n.in, loss.in, abundance.in,
   log2fc=ifelse(is.finite(abundance.out) & is.finite(abundance.in) & (abundance.in>0) & (abundance.out>0),
