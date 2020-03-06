@@ -185,6 +185,14 @@ counts.flank.out.3p <- load.trumicount.output(snakemake@input[["pool_out_3p"]], 
 counts.flank.in <- rbind(counts.flank.in.5p, counts.flank.in.3p)
 counts.flank.out <- rbind(counts.flank.out.5p, counts.flank.out.3p)
 
+join.flanks.as.columns <- function(data) {
+  data[, list(n5p=n.obs[flank=="5p"],
+              l5p=loss[flank=="5p"],
+              n3p=n.obs[flank=="3p"],
+              l3p=loss[flank=="3p"])
+       , by="knockout"]
+}
+
 # Aggregate the data for the 5' and 3' flank of each gene.
 # We add the counts and average the losses of the two flanks for each gene,
 aggregate.flanks <- function(counts.flank) {
@@ -316,14 +324,6 @@ knitr::kable(stats)
 Since the abundance of each knockout is measured twice, once for the 5' and once for the 3' flank of the knockout cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of both the raw, and the TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each knockout. Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
 ```{r table_corr_flanks}
-group.by.knockout <- function(data) {
-  data[, list(n5p=n.obs[flank=="5p"],
-              l5p=loss[flank=="5p"],
-              n3p=n.obs[flank=="3p"],
-              l3p=loss[flank=="3p"])
-       , by="knockout"]
-}
-
 knitr::kable(data.table(
   `Pool`=c(
   "input",
@@ -338,10 +338,10 @@ knitr::kable(data.table(
   "Loss-corrected (after TRUmiCount)"
   ),
   `Correlation 5' vs. 3 (intercept zero)'`=c(
-  group.by.knockout(counts.flank.in)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
-  group.by.knockout(counts.flank.out)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
-  group.by.knockout(counts.flank.in)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))],
-  group.by.knockout(counts.flank.out)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))])
+  join.flanks.as.columns(counts.flank.in)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
+  join.flanks.as.columns(counts.flank.out)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
+  join.flanks.as.columns(counts.flank.in)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))],
+  join.flanks.as.columns(counts.flank.out)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))])
 ), digits=3)
 ```
 
@@ -368,16 +368,16 @@ p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
                           showarrow=F, font=list(size=15)))
 }
 
-p.raw.in <- group.by.knockout(counts.flank.in)[, {
+p.raw.in <- join.flanks.as.columns(counts.flank.in)[, {
   p(n5p, n3p, knockout, main="Input 5' vs. 3' flank (raw)", type="Raw", first=TRUE)
 }]
-p.raw.out <- group.by.knockout(counts.flank.out)[, {
+p.raw.out <- join.flanks.as.columns(counts.flank.out)[, {
   p(n5p, n3p, knockout, main="Output 5' vs. 3' flank (raw)", type="Raw")
 }]
-p.corr.in <- d <- group.by.knockout(counts.flank.in)[, {
+p.corr.in <- d <- join.flanks.as.columns(counts.flank.in)[, {
   p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
-p.corr.out <- d <- group.by.knockout(counts.flank.out)[, {
+p.corr.out <- d <- join.flanks.as.columns(counts.flank.out)[, {
   p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
 subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
@@ -398,14 +398,6 @@ In iPool-Seq-based screens, the abundances of the different knockout strains are
 The following table shows the observed correlation of (loss-corrected) input and output abundances (averaged across the 5' and 3' flank measurements). Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
 ```{r table_corr_io}
-group.by.knockout <- function(data) {
-  data[, list(n5p=n.obs[flank=="5p"],
-              l5p=loss[flank=="5p"],
-              n3p=n.obs[flank=="3p"],
-              l3p=loss[flank=="3p"])
-       , by="knockout"]
-}
-
 knitr::kable(data.table(
   Type=c(
   "Raw (after UMI-Tools and read-count threshold)",
