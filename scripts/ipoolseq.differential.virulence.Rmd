@@ -78,7 +78,7 @@ snakemake <- new("SnakemakeStub",
                             fastqc_html_out_3p_r2=paste("..", "data", design, paste0(replicate, "-out:3p.fastqc.2.html"), sep="/")),
                  params=list(version={f <- file("../VERSION", "r"); v <- readLines(f, n=1); close(f); v},
                              dir=design, exp=replicate),
-                 output=list(table=paste("..", "tests", "data", design, paste0(replicate, "dv.tab"), sep="/")))
+                 output=list(table=paste("..", "data", design, paste0(replicate, "dv.tab"), sep="/")))
 ```
 
 ```{r setup, include=FALSE}
