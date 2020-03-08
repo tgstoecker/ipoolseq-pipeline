@@ -351,22 +351,29 @@ The following plots show the correlation of 5' and 3' UMI counts (again raw and 
 ```{r plot_corr_flanks, fig.height=6, fig.width=8}
 p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
   missing <- !is.finite(n.obs.5p) | (n.obs.5p == 0) | !is.finite(n.obs.3p) | (n.obs.3p == 0)
-  plot_ly(showlegend=first) %>%
-  add_markers(x=n.obs.5p[!missing],
-              y=n.obs.3p[!missing],
-              color=I("black"),
-              text=labels[!missing], name="UMIs found for 5' and 3' flank", legendgroup="nz",
-              marker=list(symbol="circle-open")) %>%
-  add_markers(x=pmax(n.obs.5p[missing], 0.5, na.rm=TRUE),
-              y=pmax(n.obs.3p[missing], 0.5, na.rm=TRUE),
-              color=I("black"),
-              text=labels[missing], name="No UMIs found for 5' or 3' flank", legendgroup="z",
-              marker=list(symbol="x")) %>%
-  layout(xaxis=list(type="log", title=paste0(type, " #UMIs 5'")),
-         yaxis=list(type="log", title=paste0(type, " #UMIs 3'")),
-         annotations=list(x=0.4, y=1, text = main, xanchor="center", yanchor="bottom",
-                          xref='paper', yref='paper',
-                          showarrow=F, font=list(size=15)))
+  o <- plot_ly(showlegend=first)
+  if (any(!missing))
+    o <- o %>% add_markers(x=n.obs.5p[!missing],
+                           y=n.obs.3p[!missing],
+                           color=I("black"),
+                           text=labels[!missing],
+                           name="UMIs found for 5' and 3' flank",
+                           legendgroup="nz",
+                           marker=list(symbol="circle-open"))
+  if (any(missing))
+    o <- o %>% add_markers(x=pmax(n.obs.5p[missing], 0.5, na.rm=TRUE),
+                           y=pmax(n.obs.3p[missing], 0.5, na.rm=TRUE),
+                           color=I("black"),
+                           text=labels[missing],
+                           name="No UMIs found for 5' or 3' flank",
+                           legendgroup="z",
+                           marker=list(symbol="x"))
+  o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs 5'")),
+                    yaxis=list(type="log", title=paste0(type, " #UMIs 3'")),
+                    annotations=list(x=0.4, y=1, text = main, xanchor="center", yanchor="bottom",
+                                     xref='paper', yref='paper',
+                                     showarrow=F, font=list(size=15)))
+  o
 }
 
 p.raw.in <- join.flanks.as.columns(counts.flank.in)[, {
@@ -416,11 +423,12 @@ The following plots show the correlation of input and output abundances in more 
 p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
   missing <- !is.finite(abd.in) | (abd.in == 0) | !is.finite(abd.out) | (abd.out == 0)
   o <- plot_ly(showlegend=first)
-  o <- o %>% add_markers(x=abd.in[!missing],
-                         y=abd.out[!missing],
-                         color=I("black"),
-                         text=labels[!missing], name="present in input and output", legendgroup="nz",
-                         marker=list(symbol="circle-open"))
+  if (any(!missing))
+    o <- o %>% add_markers(x=abd.in[!missing],
+                           y=abd.out[!missing],
+                           color=I("black"),
+                           text=labels[!missing], name="present in input and output", legendgroup="nz",
+                           marker=list(symbol="circle-open"))
   if (any(missing))
     o <- o %>% add_markers(x=pmax(abd.in[missing], 0.5, na.rm=TRUE),
                            y=pmax(abd.out[missing], 0.5, na.rm=TRUE),
