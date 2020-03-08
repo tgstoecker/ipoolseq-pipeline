@@ -151,13 +151,11 @@ knockouts <- readGFFAsGRanges(snakemake@input$isites_in, version=3)
 # Assign knockouts to genes
 local({
   hits <- findOverlaps(knockouts, genes, ignore.strand=TRUE)
-  knockouts$GeneID <<- NA_character_
-  knockouts$GeneID[queryHits(hits)] <<- genes[subjectHits(hits)]$ID
-  knockouts$GeneName <<- NA_character_
-  knockouts$GeneName[queryHits(hits)] <<- genes[subjectHits(hits)]$Name
+  knockouts$GeneIndex <<- NA_integer_
+  knockouts$GeneIndex[queryHits(hits)] <<- subjectHits(hits)
 })
 # Mark knockouts not assigned to genes as neutral
-knockouts$Neutral <- ifelse(is.na(knockouts$GeneID), 1, 0)
+knockouts$Neutral <- ifelse(is.na(knockouts$GeneIndex), 1, 0)
 
 # Find neutral knockouts!
 NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
@@ -208,18 +206,17 @@ counts.out <- aggregate.flanks(counts.flank.out)
 counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))[,list(
   knockout,
   is.neutral=knockout %in% NEUTRAL,
-  gene_name=NA_character_,
-  gene_id=NA_character_,
+  gene=NA_integer_,
   n.in, loss.in,
   n.out, loss.out,
   abundance.in=ifelse(n.in > 0, n.in / (2 * (1-loss.in)), 0),
   abundance.out=ifelse(n.out > 0, n.out / (2 * (1-loss.out)), 0)
 )]
 
-# Fill in gene_name and gene_id columns
+# Fill in index of the gene (if any) affected by a knockout
 local({
-  allKOmeta <- data.table(knockout=knockouts$Name, gene_id=knockouts$GeneID, gene_name=knockouts$GeneName)
-  counts[, c("gene_id", "gene_name") := allKOmeta[counts, list(x.gene_id, x.gene_name), on=c("knockout")] ]
+  allKOmeta <- data.table(knockout=knockouts$Name, gene=knockouts$GeneIndex)
+  counts[, "gene" := allKOmeta[counts, gene, on=c("knockout")] ]
 })
 ```
 
@@ -510,7 +507,9 @@ $$
 ```{r sig_test}
 # Compute log2 fold changes and p-values
 results <- counts[, list(
-  knockout, is.neutral, gene_id, gene_name,
+  knockout, is.neutral,
+  gene_id=ifelse(!is.na(gene), genes[pmax(gene, 1, na.rm=TRUE)]$ID, NA_character_),
+  gene_name=ifelse(!is.na(gene), genes[pmax(gene, 1, na.rm=TRUE)]$Name, NA_character_),
   n.out, loss.out, abundance.out,
   n.in, loss.in, abundance.in,
   log2fc=ifelse(is.finite(abundance.out) & is.finite(abundance.in) & (abundance.in>0) & (abundance.out>0),
