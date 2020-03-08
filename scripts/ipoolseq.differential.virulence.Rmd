@@ -149,20 +149,20 @@ genes <- annotations[annotations$type=="gene"]
 essential <- read.table(snakemake@input$essential, header=TRUE)
 genes$Essential <- mcols(genes)[[colnames(essential)[1]]] %in% essential[[1]]
 
-# Load list of knockouts, find assumed neutral set
+# Load list of mutants, find assumed neutral set
 message("Loading insertion sites from ", snakemake@input$isites_in)
-knockouts <- readGFFAsGRanges(snakemake@input$isites_in, version=3)
-# Assign knockouts to genes
+mutants <- readGFFAsGRanges(snakemake@input$isites_in, version=3)
+# Assign mutants to genes
 local({
-  hits <- findOverlaps(knockouts, genes, ignore.strand=TRUE)
-  knockouts$GeneIndex <<- NA_integer_
-  knockouts$GeneIndex[queryHits(hits)] <<- subjectHits(hits)
+  hits <- findOverlaps(mutants, genes, ignore.strand=TRUE)
+  mutants$GeneIndex <<- NA_integer_
+  mutants$GeneIndex[queryHits(hits)] <<- subjectHits(hits)
 })
-# Mark knockouts not assigned to genes as neutral
-knockouts$Neutral <- ifelse(is.na(knockouts$GeneIndex), 1, 0)
+# Mark mutants not assigned to genes as neutral
+mutants$Neutral <- ifelse(is.na(mutants$GeneIndex), 1, 0)
 
-# Find neutral knockouts!
-NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
+# Find neutral mutants!
+NEUTRAL <- mutants$Name[mutants$Neutral == 1]
 
 # Load UMI count tables produced by TRUmiCount
 # Note that TRUmiCount thinks in terms of RNA-Seq and calls whatever key it used
@@ -171,11 +171,11 @@ NEUTRAL <- knockouts$Name[knockouts$Neutral == 1]
 load.trumicount.output <- function(file, flank) {
   message("Loading TRUmiCount results from ", file)
   t <- data.table(read.table(file, header=TRUE, sep='\t'))
-  # Rename column "gene" to "knockout"
-  colnames(t) <- ifelse(colnames(t) == "gene", "knockout", colnames(t))
-  # Make sure there is exactly one row per knockout and add flank
-  allKOs <- data.table(knockout=knockouts$Name)
-  t <- t[allKOs,, on="knockout"]
+  # Rename column "gene" to "mutant"
+  colnames(t) <- ifelse(colnames(t) == "gene", "mutant", colnames(t))
+  # Make sure there is exactly one row per mutant and add flank
+  allKOs <- data.table(mutant=mutants$Name)
+  t <- t[allKOs,, on="mutant"]
   t[, flank := flank ]
 }
 counts.flank.in.5p <- load.trumicount.output(snakemake@input[["pool_in_5p"]], "5p")
@@ -187,12 +187,13 @@ counts.flank.out.3p <- load.trumicount.output(snakemake@input[["pool_out_3p"]], 
 counts.flank.in <- rbind(counts.flank.in.5p, counts.flank.in.3p)
 counts.flank.out <- rbind(counts.flank.out.5p, counts.flank.out.3p)
 
+# Function to combine flank-specific data horizontally
 join.flanks.as.columns <- function(data) {
   data[, list(n5p=n.obs[flank=="5p"],
               l5p=loss[flank=="5p"],
               n3p=n.obs[flank=="3p"],
               l3p=loss[flank=="3p"])
-       , by="knockout"]
+       , by="mutant"]
 }
 
 # Aggregate the data for the 5' and 3' flank of each gene.
@@ -201,15 +202,15 @@ aggregate.flanks <- function(counts.flank) {
   counts.flank[, list(
     n = sum(n.obs, na.rm=TRUE),
     loss = mean(loss, na.rm=TRUE)
-  ), by="knockout"]
+  ), by="mutant"]
 }
 counts.in <- aggregate.flanks(counts.flank.in)
 counts.out <- aggregate.flanks(counts.flank.out)
 
 # Combine input and output pool data into a single table
-counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))[,list(
-  knockout,
-  is.neutral=knockout %in% NEUTRAL,
+counts <- merge(counts.in, counts.out, by="mutant", suffixes=c(".in", ".out"))[,list(
+  mutant,
+  is.neutral=mutant %in% NEUTRAL,
   gene=NA_integer_,
   n.in, loss.in,
   n.out, loss.out,
@@ -217,31 +218,34 @@ counts <- merge(counts.in, counts.out, by="knockout", suffixes=c(".in", ".out"))
   abundance.out=ifelse(n.out > 0, n.out / (2 * (1-loss.out)), 0)
 )]
 
-# Fill in index of the gene (if any) affected by a knockout
+# Fill in index of the gene (if any) affected by a mutant
 local({
-  allKOmeta <- data.table(knockout=knockouts$Name, gene=knockouts$GeneIndex)
-  counts[, "gene" := allKOmeta[counts, gene, on=c("knockout")] ]
+  allKOmeta <- data.table(mutant=mutants$Name, gene=mutants$GeneIndex)
+  counts[, "gene" := allKOmeta[counts, gene, on=c("mutant")] ]
 })
 ```
 
 # 1. Files
 
-The following table lists the main input files used to compute differential virulences, and the name of the generated results table. The results table lists, for each knockout, the change in virulence (as a log2 fold change of normalized output abundance relative to the neutral reference set), p-values, and FDR-corrected (using the method of Benjamini-Hochberg) q-values for the significance of the change.
+The following table lists the main input files used to compute differential virulences, and the name of the generated results table. The results table lists, for each mutant strain, the change in virulence (as a log2 fold change of normalized output abundance relative to the neutral reference set), p-values, and FDR-corrected (using the method of Benjamini-Hochberg) q-values for the significance of the change.
 
 ```{r table_files}
-knitr::kable(data.frame(row.names=c("list of insertional knockouts (mutants)",
-                                    "5' knockout abundances in (pre-infection)  input pool",
-                                    "3' knockout abundances in (pre-infection)  input pool",
-                                    "5' knockout abundances in (post-infection) output pool",
-                                    "3' knockout abundances in (post-infection) output pool",
+knitr::kable(data.frame(row.names=c("list of mutants in (pre-infection) input pool",
+                                    "list of mutants in (pre-infection) output pool",
+                                    "5' mutant abundances in (pre-infection)  input pool",
+                                    "3' mutant abundances in (pre-infection)  input pool",
+                                    "5' mutant abundances in (post-infection) output pool",
+                                    "3' mutant abundances in (post-infection) output pool",
                                     "differential virulence results table"),
                         file=c(snakemake@input$isites_in,
+                               snakemake@input$isites_out,
                                make_link(basename(snakemake@input$pool_in_5p)),
                                make_link(basename(snakemake@input$pool_in_3p)),
                                make_link(basename(snakemake@input$pool_out_5p)),
                                make_link(basename(snakemake@input$pool_out_3p)),
                                make_link(basename(snakemake@output$table))),
                         report=c("",
+                                 "",
                                  make_link(basename(snakemake@input$trumicount_pdf_in_5p), "TRUmiCount report"),
                                  make_link(basename(snakemake@input$trumicount_pdf_in_3p), "TRUmiCount report"),
                                  make_link(basename(snakemake@input$trumicount_pdf_out_5p), "TRUmiCount report"),
@@ -272,7 +276,7 @@ knitr::kable(data.frame(
 
 ## Read and UMI count statistics
 
-The number of remaining read pairs and the number of unique UMIs within these pairs after each analysis step. The percentages are relative to the *first* number within each column. Since unique UMIs are determined for the 5' and 3' flank of each knockout, no UMI counts are reported until reads have been assigned to the individual knockouts (and their flanks).
+The number of remaining read pairs and the number of unique UMIs within these pairs after each analysis step. The percentages are relative to the *first* number within each column. Since unique UMIs are determined for the 5' and 3' flank of each mutant, no UMI counts are reported until reads have been assigned to the individual mutant strains (and their flanks).
 
 Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](http://www.cibiv.at/software/trumicount) UMI filtering step.
 
@@ -322,7 +326,7 @@ knitr::kable(stats)
 
 ## Correlation of 3' and 5' Flank Abundances
 
-Since the abundance of each knockout is measured twice, once for the 5' and once for the 3' flank of the knockout cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of both the raw, and the TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each knockout. Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
+Since the abundance of each mutant strain is measured twice, once for the 5' and once for the 3' flank of the cassette integration, the correlation of these two measurements provides a quality check of the data. The following table lists the correlation of both the raw, and the TRUmiCount-corrected UMI counts detected for the 5' and 3' flanks of each mutant strain. Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
 ```{r table_corr_flanks}
 knitr::kable(data.table(
@@ -377,16 +381,16 @@ p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
 }
 
 p.raw.in <- join.flanks.as.columns(counts.flank.in)[, {
-  p(n5p, n3p, knockout, main="Input 5' vs. 3' flank (raw)", type="Raw", first=TRUE)
+  p(n5p, n3p, mutant, main="Input 5' vs. 3' flank (raw)", type="Raw", first=TRUE)
 }]
 p.raw.out <- join.flanks.as.columns(counts.flank.out)[, {
-  p(n5p, n3p, knockout, main="Output 5' vs. 3' flank (raw)", type="Raw")
+  p(n5p, n3p, mutant, main="Output 5' vs. 3' flank (raw)", type="Raw")
 }]
 p.corr.in <- d <- join.flanks.as.columns(counts.flank.in)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
+  p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
 p.corr.out <- d <- join.flanks.as.columns(counts.flank.out)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), knockout, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
+  p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
 }]
 subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
@@ -401,7 +405,7 @@ __________
 
 ## Correlation of Input and Output Abundances
 
-In iPool-Seq-based screens, the abundances of the different knockout strains are often spread over multiple orders of magnitude, and differences in input abundances can thus affect the abundance in the output more strongly than the mutant's phenotypes. The statistical model used to detect significant changes of virulence must thus take the input abundance into account, and assumes that for neutral knockouts, input and output abundances are proportional.
+In iPool-Seq-based screens, the abundances of the different mutant strains are often spread over multiple orders of magnitude, and differences in input abundances can thus affect the abundance in the output more strongly than the mutant's phenotypes. The statistical model used to detect significant changes of virulence must thus take the input abundance into account, and assumes that for neutral mutant strains, input and output abundances are proportional.
 
 The following table shows the observed correlation of (loss-corrected) input and output abundances (averaged across the 5' and 3' flank measurements). Correlations are computed from the *square roots* of counts respectively abundances (to avoid overdue influence of large counts), and with the intercept forced to zero (regression line passing through the origin).
 
@@ -444,10 +448,10 @@ p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
 }
 
 p.raw <- counts[, {
-  p(n.in, n.out, knockout, main="Input vs. Output (raw)", type="Raw", first=TRUE)
+  p(n.in, n.out, mutant, main="Input vs. Output (raw)", type="Raw", first=TRUE)
 }]
 p.corr <- counts[, {
-  p(abundance.in, abundance.out, knockout, main="Input vs. Output (loss-corr.)", type="Loss-corr.")
+  p(abundance.in, abundance.out, mutant, main="Input vs. Output (loss-corr.)", type="Loss-corr.")
 }]
 subplot(list(p.raw, p.corr), nrows=1,
         titleX=TRUE, titleY=TRUE, margin=0.12) %>%
@@ -489,13 +493,13 @@ local({
 
 ## Statistical Model and Parameters
 
-The (raw) output UMI count $N_\text{out}$ of a neutral knockout given its (raw) input UMI count $N_\text{in}$ and TRUmiCount-estimated loss (i.e. fraction of lost UMIs) $\ell_\text{in}$ for the input and $\ell_\text{out}$ for the output is modelled with the following negative binomial model
+The (raw) output UMI count $N_\text{out}$ of a neutral mutant strain given its (raw) input UMI count $N_\text{in}$ and TRUmiCount-estimated loss (i.e. fraction of lost UMIs) $\ell_\text{in}$ for the input and $\ell_\text{out}$ for the output is modelled with the following negative binomial model
 
 $$
 N_\text{out} \,|\, N_\text{in} \;\sim\; \text{NegBin}\left(\mu:=N_\text{in}\cdot\lambda\cdot\frac{1-\ell_\text{out}}{1-\ell_\text{in}}, r:=\frac{N_\text{in}}{1+d\cdot N_\text{in}}\right).
 $$
 
-(UMI counts of 5' and 3' flanks are added to obtain $N_\text{in}$ and $N_\text{out}$, losses for 5' and 3' flanks are averaged to obtain $\ell_\text{in}$ and $\ell_\text{out}$). Parameter $\lambda$ measures the relative size of the output library (i.e. loss-corrected total number of UMIs per neutral knockout) compared to the input. Parameter $d$ represents the biological contribution to the squared [coefficient of variation](http://en.wikipedia.org/wiki/Coefficient_of_variation) of the (raw) output UMI counts $N_\text{out}$. The total squared coefficient of variation $\text{CV}^2 = \sigma^2 / \mu^2$ of $N_\text{out}$ (where $\mu$ is the mean and $\sigma^2$ the variance of $N_\text{out}$) comprises three contributors,
+(UMI counts of 5' and 3' flanks are added to obtain $N_\text{in}$ and $N_\text{out}$, losses for 5' and 3' flanks are averaged to obtain $\ell_\text{in}$ and $\ell_\text{out}$). Parameter $\lambda$ measures the relative size of the output library (i.e. loss-corrected total number of UMIs per neutral mutant strain) compared to the input. Parameter $d$ represents the biological contribution to the squared [coefficient of variation](http://en.wikipedia.org/wiki/Coefficient_of_variation) of the (raw) output UMI counts $N_\text{out}$. The total squared coefficient of variation $\text{CV}^2 = \sigma^2 / \mu^2$ of $N_\text{out}$ (where $\mu$ is the mean and $\sigma^2$ the variance of $N_\text{out}$) comprises three contributors,
 
 $$
   \text{CV}^2 = \frac{1}{\mu} + \frac{1}{N_\text{in}} + d,
@@ -503,7 +507,7 @@ $$
 
 where the first two are of technical nature and represent the variation due to (Poissonian, i.e. non-exhaustive) sampling of genomes in the input ($1/N_\text{in}$) and output ($1/\mu$) pools, and the third ($d$) represents the biological variation due to growth differences between neutral mutants.
 
-The optimal (likelihood-maximazing) values for parameters $\lambda$ and $d$ for the reference set of neutral knockouts are:
+The optimal (likelihood-maximazing) values for parameters $\lambda$ and $d$ for the reference set of neutral mutant strains are:
 
 ```{r fit_model, warning=TRUE}
 # Counts to fit model against
@@ -533,7 +537,7 @@ knitr::kable(signif(null.model, digits=3),
 
 ## Differential virulence compared to the neutral reference set
 
-For every knockout strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses (i.e. fraction of lost UMIs) $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
+For every mutant strain detected in both input and output with (raw) UMI counts $N_\text{in}$ respectively $N_\text{out}$ (counts of 5' and 3' flanks added) and TRUmiCount-estimated  losses (i.e. fraction of lost UMIs) $\ell_\text{in}$ and $\ell_\text{out}$ (losses for 5' and 3' flanks averaged), the virulence log2 fold-change compared to the neutral reference set is
 
 $$
 \log_2 \Delta v = \log_2 \frac{N_\text{out} / (1-\ell_\text{out})}{\lambda\cdot N_\text{in} / (1-\ell_\text{in})}.
@@ -544,7 +548,7 @@ $$
 ```{r sig_test}
 # Compute log2 fold changes and p-values
 results <- counts[, list(
-  knockout, is.neutral,
+  mutant, is.neutral,
   gene_id=ifelse(!is.na(gene), genes[pmax(gene, 1, na.rm=TRUE)]$ID, NA_character_),
   gene_name=ifelse(!is.na(gene), genes[pmax(gene, 1, na.rm=TRUE)]$Name, NA_character_),
   n.out, loss.out, abundance.out,
@@ -568,7 +572,7 @@ results[, high.qval := p.adjust(high.pval, method='BH')]
 write.table(results, file=snakemake@output$table, col.names=TRUE, sep="\t", row.names=FALSE)
 ```
 
-Due to the negative binomial model (see *Statistical Model and Parameters*), the power to detect changes in virulence increases with the input abundance of a knockout. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which knockout have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
+Due to the negative binomial model (see *Statistical Model and Parameters*), the power to detect changes in virulence increases with the input abundance of a mutant strain. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which mutant strins have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
 
 ```{r plot_log2fc}
 # Compute (approximate) insigificance region
@@ -593,31 +597,31 @@ add_trace(x=c(a.in, rev(a.in)),
           type='scatter', mode='none', fill='toself', fillcolor='lightgrey') %>%
 add_trace(x=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), abundance.in],
           y=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), log2fc],
-          text=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), knockout],
+          text=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), mutant],
           name='insignificant change of virulence',
           marker=list(symbol="circle-open", color='darkgrey'),
           type="scatter", mode="markers") %>%
 add_trace(x=results[is.neutral==TRUE, abundance.in],
           y=results[is.neutral==TRUE, log2fc],
-          text=results[is.neutral==TRUE, knockout],
+          text=results[is.neutral==TRUE, mutant],
           name='neutral reference set',
           marker=list(symbol="circle-open", color='darkgreen'),
           type="scatter", mode="markers") %>%
 add_trace(x=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), abundance.in],
           y=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), log2fc],
-          text=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), knockout],
+          text=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), mutant],
           name='non-neutral',
           marker=list(symbol="circle-open", color='black'),
           type="scatter", mode="markers") %>%
 add_trace(x=results[low.qval <= PLOT.FDR.THRESHOLD, abundance.in],
           y=results[low.qval <= PLOT.FDR.THRESHOLD, log2fc],
-          text=results[low.qval <= PLOT.FDR.THRESHOLD, knockout],
+          text=results[low.qval <= PLOT.FDR.THRESHOLD, mutant],
           name='significantly reduced virulence',
           marker=list(symbol="circle-open", color='red'),
           type="scatter", mode="markers") %>%
 add_trace(x=results[high.qval <= PLOT.FDR.THRESHOLD, abundance.in],
           y=results[high.qval <= PLOT.FDR.THRESHOLD, log2fc],
-          text=results[high.qval <= PLOT.FDR.THRESHOLD, knockout],
+          text=results[high.qval <= PLOT.FDR.THRESHOLD, mutant],
           name='significantly increased virulence',
           marker=list(symbol="circle-open", color='blue'),
           type="scatter", mode="markers") %>%
@@ -630,7 +634,7 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
 ```
 
 __________
-(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-knockout loss percentage computed by [TRUmiCount](http://www.cibiv.at/software/trumicount). Knockouts are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
+(The grey area of insignificance virulence changes is only approximate -- it does not take any *false discovery rate* (FDR) or *multiple testing* correction into account, and it is computed from an average *loss*, instead of the per-mutant loss percentage computed by [TRUmiCount](http://www.cibiv.at/software/trumicount). Mutant strains are called significant or insignificant based on a FDR threshold of `r PLOT.FDR.THRESHOLD`)
 
 ## Reduced virulence compared to the neutral reference set
 
@@ -638,7 +642,7 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 
 ```{r table_depleted}
 DT::datatable(results[!is.na(log2fc), list(
-    knockout, is.neutral, gene_name, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
+    mutant, is.neutral, gene_name, log2fc, pval=low.pval, qval=low.qval, sig=sig.stars(low.qval)
   )],
   filter="top", rownames=FALSE,
   options=list(order=list(3, 'asc'),
@@ -649,7 +653,7 @@ formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
 __________
-(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only knockouts with *qval* <= 0.1 are shown, remove the column filter to show all)
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* < 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only mutant strains with *qval* <= 0.1 are shown, remove the column filter to show all)
 
 ## Increased virulence compared to the neutral reference set
 
@@ -657,7 +661,7 @@ The following table lists p-values and (FDR-corrected) q-values for the virulenc
 
 ```{r table_enriched}
 DT::datatable(results[!is.na(log2fc), list(
-  knockout, is.neutral, gene_name, log2fc, pval=high.pval, qval=high.qval, sig=sig.stars(high.qval)
+  mutant, is.neutral, gene_name, log2fc, pval=high.pval, qval=high.qval, sig=sig.stars(high.qval)
   )],
   filter="top", rownames=FALSE,
   options=list(order=list(3, 'desc'),
@@ -668,4 +672,4 @@ formatSignif(columns=c("pval", "qval"), digits=2)
 ```
 
 __________
-(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only knockouts with *qval* <= 0.1 are shown, remove the column filter to show all)
+(*log2fc* contains the log2 fold-changes of the virulence compared to the neutral reference set, *pval* contains p-values for the significance of *log2fc* > 0 under a negative binomial model, *qval* contains FDR-corrected p-values, in *sig* \*\*\*\*\* means *qval* <= 0.00001, \*\*\*\* means *qval* <= 0.0001, \*\*\* means *qval* <= 0.001, \*\* means *qval* <= 0.01, \* means *qval* <= 0.05, + means *qval* <= 0.1. By default only mutant strains with *qval* <= 0.1 are shown, remove the column filter to show all)
