@@ -464,7 +464,9 @@ layout(width=600, height=300,
 __________
 (Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
 
-## Distribution of insertion sites
+## Abundance distribution for mutant classes *intergenic*, *non-essential* and *essential*
+
+The following boxplots show the distribution of abundances for mutants affecting either an *intergenic region*, an *non-essential gene* or an *essential gene*.
 
 ```{r plot_geneclass}
 local({
@@ -474,15 +476,18 @@ local({
                        ifelse(genes[pmax(gene, 1, na.rm=TRUE)]$Essential,
                               "essential", "non-essential")),
                 levels=class.levels, ordered=TRUE),
+    mutant,
     abundance.in,
     abundance.out
   )]
-  p.in <- plot_ly(data, x=~class, y=~abundance.in, type="box", showlegend=FALSE) %>%
+  p.in <- plot_ly(data, x=~class, y=~abundance.in, color=I("black"),
+                  text=~mutant, type="box", showlegend=FALSE) %>%
     layout(xaxis=list(title="gene class"),
            yaxis=list(title="Abundance (Input)"))
-  p.out <- plot_ly(data, x=~class, y=~abundance.out, type="box", showlegend=FALSE) %>%
+  p.out <- plot_ly(data, x=~class, y=~abundance.out, color=I("black"),
+                   text=~mutant, type="box", showlegend=FALSE) %>%
     layout(xaxis=list(title="gene class"),
-           yaxis=list(title="Abundance (Input)"))
+           yaxis=list(title="Abundance (Output)"))
   subplot(list(p.in, p.out), nrows=1,
           titleX=TRUE, titleY=TRUE, margin=0.12)
 })
