@@ -145,6 +145,10 @@ message("Loading gene annotations from ", snakemake@input$ann)
 annotations <- readGFFAsGRanges(snakemake@input$ann, version=3)
 genes <- annotations[annotations$type=="gene"]
 
+# Mark essential genes with Essential=TRUE
+essential <- read.table(snakemake@input$essential, header=TRUE)
+genes$Essential <- mcols(genes)[[colnames(essential)[1]]] %in% essential[[1]]
+
 # Load list of knockouts, find assumed neutral set
 message("Loading insertion sites from ", snakemake@input$isites_in)
 knockouts <- readGFFAsGRanges(snakemake@input$isites_in, version=3)
@@ -447,6 +451,31 @@ layout(width=600, height=300,
 
 __________
 (Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
+
+## Distribution of insertion sites
+
+```{r plot_geneclass}
+local({
+  class.levels = c("intergenic", "non-essential", "essential")
+  data <- counts[, list(
+    class=factor(ifelse(is.na(gene), "intergenic",
+                       ifelse(genes[pmax(gene, 1, na.rm=TRUE)]$Essential,
+                              "essential", "non-essential")),
+                levels=class.levels, ordered=TRUE),
+    abundance.in,
+    abundance.out
+  )]
+  p.in <- plot_ly(data, x=~class, y=~abundance.in, type="box", showlegend=FALSE) %>%
+    layout(xaxis=list(title="gene class"),
+           yaxis=list(title="Abundance (Input)"))
+  p.out <- plot_ly(data, x=~class, y=~abundance.out, type="box", showlegend=FALSE) %>%
+    layout(xaxis=list(title="gene class"),
+           yaxis=list(title="Abundance (Input)"))
+  subplot(list(p.in, p.out), nrows=1,
+          titleX=TRUE, titleY=TRUE, margin=0.12)
+})
+```
+
 
 # 3. Results
 
