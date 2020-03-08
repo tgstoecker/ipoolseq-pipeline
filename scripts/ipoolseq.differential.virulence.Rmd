@@ -54,6 +54,7 @@ replicate <- "r77647"
 setClass("SnakemakeStub", representation(input = "list", params = "list", output = "list"))
 snakemake <- new("SnakemakeStub",
                  input=list(ann=paste("..", "cfg", design, "annotation.gff3.gz", sep="/"),
+                            essential=paste("..", "cfg", design, "essential.tab", sep="/"),
                             isites_in=paste("..", "data", design, paste0(replicate, "-in.isites.gff3.gz"), sep="/"),
                             isites_out=paste("..", "data", design, paste0(replicate, "-out.isites.gff3.gz"), sep="/"),
                             pool_in_5p=paste("..", "data", design, paste0(replicate, "-in:5p.count.tab"), sep="/"),
