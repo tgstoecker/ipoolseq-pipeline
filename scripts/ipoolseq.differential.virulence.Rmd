@@ -476,7 +476,7 @@ __________
 
 The following boxplots show the distribution of abundances for mutants affecting either an *intergenic region*, an *non-essential gene* or an *essential gene*.
 
-```{r plot_geneclass}
+```{r plot_mutantclass_abundance}
 local({
   class.levels = c("intergenic", "non-essential", "essential")
   data <- counts[, list(
