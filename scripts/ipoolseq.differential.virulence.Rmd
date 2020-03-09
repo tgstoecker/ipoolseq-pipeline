@@ -398,7 +398,8 @@ subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
 layout(width=600, height=600,
        margin=list(l=0, r=0, t=50, b=50),
        legend=list(orientation="h", bgcolor="lightgrey",
-                   x=0, y=-0.2, xanchor="left", yanchor="top"))
+                   x=0, y=-0.2, xanchor="left", yanchor="top")) %>%
+toWebGL()
 ```
 
 __________
@@ -459,7 +460,8 @@ subplot(list(p.raw, p.corr), nrows=1,
 layout(width=600, height=300,
        margin=list(l=0, r=0, t=50, b=50),
        legend=list(orientation="h", bgcolor="lightgrey",
-                   x=0, y=-0.4, xanchor="left", yanchor="top"))
+                   x=0, y=-0.4, xanchor="left", yanchor="top")) %>%
+toWebGL()
 ```
 
 __________
@@ -490,7 +492,8 @@ local({
     layout(xaxis=list(title="gene class"),
            yaxis=list(title="Abundance (Output)"))
   subplot(list(p.in, p.out), nrows=1,
-          titleX=TRUE, titleY=TRUE, margin=0.12)
+          titleX=TRUE, titleY=TRUE, margin=0.12) %>%
+  toWebGL()
 })
 ```
 
@@ -636,7 +639,8 @@ layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE
        yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
                           ceiling(max(results$log2fc, na.rm=TRUE))),
                   title=paste0("virulence log2 fold change")),
-       legend=list(x=0, y=-0.15, xanchor="left", yanchor="top"))
+       legend=list(x=0, y=-0.15, xanchor="left", yanchor="top")) %>%
+toWebGL()
 ```
 
 __________
