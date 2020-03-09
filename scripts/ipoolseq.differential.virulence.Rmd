@@ -198,10 +198,14 @@ join.flanks.as.columns <- function(data) {
 }
 
 # Aggregate the data for the 5' and 3' flank of each gene.
-# We add the counts and average the losses of the two flanks for each gene,
+# We add the counts and average the losses of the two flanks for each gene,.
+# We also remember how many flanks were detected for every mutant, so that
+# we can later avoid biasing against mutants where some flank is not detecable
+# e.g. due to low mapping qualities
 aggregate.flanks <- function(counts.flank) {
   counts.flank[, list(
     n = sum(n.obs, na.rm=TRUE),
+    flanks = sum(n.obs > 0, na.rm=TRUE),
     loss = mean(loss, na.rm=TRUE)
   ), by="mutant"]
 }
@@ -215,8 +219,9 @@ counts <- merge(counts.in, counts.out, by="mutant", suffixes=c(".in", ".out"))[,
   gene=NA_integer_,
   n.in, loss.in,
   n.out, loss.out,
-  abundance.in=ifelse(n.in > 0, n.in / (2 * (1-loss.in)), 0),
-  abundance.out=ifelse(n.out > 0, n.out / (2 * (1-loss.out)), 0)
+  flanks=pmax(flanks.in, flanks.out, 0, na.rm=TRUE),
+  abundance.in=ifelse(n.in > 0, n.in / (pmax(flanks.in, flanks.out, na.rm=TRUE) * (1-loss.in)), 0),
+  abundance.out=ifelse(n.out > 0, n.out / (pmax(flanks.in, flanks.out, na.rm=TRUE) * (1-loss.out)), 0)
 )]
 
 # Fill in index of the gene (if any) affected by a mutant
@@ -366,8 +371,8 @@ p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
                            legendgroup="nz",
                            marker=list(symbol="circle-open"))
   if (any(missing))
-    o <- o %>% add_markers(x=pmax(n.obs.5p[missing], 0.5, na.rm=TRUE),
-                           y=pmax(n.obs.3p[missing], 0.5, na.rm=TRUE),
+    o <- o %>% add_markers(x=pmax(n.obs.5p[missing], 1.0, na.rm=TRUE),
+                           y=pmax(n.obs.3p[missing], 1.0, na.rm=TRUE),
                            color=I("black"),
                            text=labels[missing],
                            name="No UMIs found for 5' or 3' flank",
@@ -562,6 +567,7 @@ results <- counts[, list(
   gene_name=ifelse(!is.na(gene), genes[pmax(gene, 1, na.rm=TRUE)]$Name, NA_character_),
   n.out, loss.out, abundance.out,
   n.in, loss.in, abundance.in,
+  flanks,
   log2fc=ifelse(is.finite(abundance.out) & is.finite(abundance.in) & (abundance.in>0) & (abundance.out>0),
                 log2(abundance.out / (null.model$scale * abundance.in)),
                 NA_real_),
@@ -587,7 +593,7 @@ Due to the negative binomial model (see *Statistical Model and Parameters*), the
 # Compute (approximate) insigificance region
 loss.out <- mean(results$loss.out, na.rm=TRUE)
 loss.in <- mean(results$loss.in, na.rm=TRUE)
-a.in <- 10**seq(from=0, to=2*log10(max(results$abundance.in, na.rm=TRUE)), length.out=200)
+a.in <- 10**seq(from=log10(0.5), to=2*log10(max(results$abundance.in, na.rm=TRUE)), length.out=200)
 l2fc.low <- log2(pmax(qipsmodel(p=rep(PLOT.FDR.THRESHOLD, along.with=a.in),
                                 scale=null.model$scale, disp=null.model$disp,
                                 n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) - 1, 0) /
@@ -634,7 +640,7 @@ add_trace(x=results[high.qval <= PLOT.FDR.THRESHOLD, abundance.in],
           name='significantly increased virulence',
           marker=list(symbol="circle-open", color='blue'),
           type="scatter", mode="markers") %>%
-layout(xaxis=list(range=c(0, ceiling(max(log10(results$abundance.in), na.rm=TRUE))), type="log",
+layout(xaxis=list(range=c(log10(0.5), ceiling(max(log10(results$abundance.in), na.rm=TRUE))), type="log",
                   title="input abundance (loss-corr. #UMIs)"),
        yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
                           ceiling(max(results$log2fc, na.rm=TRUE))),
