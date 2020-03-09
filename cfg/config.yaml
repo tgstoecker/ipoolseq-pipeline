@@ -6,6 +6,10 @@ reference_annotation:
   - file: 'data/{dir}/{lib}'
     opts: 'cfg/{dir}/annotation.gff3.gz'
 
+essential_genes:
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/essential.tab'
+
 knockouts:
   - file: 'data/Simulation/{lib}'
     opts: 'cfg/Uhse_et_al.2018/knockouts.gff'
