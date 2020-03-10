@@ -77,7 +77,7 @@ snakemake <- new("SnakemakeStub",
                             fastqc_html_out_5p_r2=paste("..", "data", design, paste0(replicate, "-out:5p.fastqc.2.html"), sep="/"),
                             fastqc_html_out_3p_r1=paste("..", "data", design, paste0(replicate, "-out:3p.fastqc.1.html"), sep="/"),
                             fastqc_html_out_3p_r2=paste("..", "data", design, paste0(replicate, "-out:3p.fastqc.2.html"), sep="/")),
-                 params=list(version={f <- file("../VERSION", "r"); v <- readLines(f, n=1); close(f); v},
+                 params=list(version=local({f <- file("../VERSION", "r"); v <- readLines(f, n=1); close(f); v}),
                              dir=design, exp=replicate),
                  output=list(table=paste("..", "data", design, paste0(replicate, "dv.tab"), sep="/")))
 ```
@@ -213,21 +213,24 @@ counts.in <- aggregate.flanks(counts.flank.in)
 counts.out <- aggregate.flanks(counts.flank.out)
 
 # Combine input and output pool data into a single table
-counts <- merge(counts.in, counts.out, by="mutant", suffixes=c(".in", ".out"))[,list(
-  mutant,
-  is.neutral=mutant %in% NEUTRAL,
-  gene=NA_integer_,
-  n.in, loss.in,
-  n.out, loss.out,
-  flanks=pmax(flanks.in, flanks.out, 0, na.rm=TRUE),
-  abundance.in=ifelse(n.in > 0, n.in / (pmax(flanks.in, flanks.out, na.rm=TRUE) * (1-loss.in)), 0),
-  abundance.out=ifelse(n.out > 0, n.out / (pmax(flanks.in, flanks.out, na.rm=TRUE) * (1-loss.out)), 0)
-)]
+counts <- merge(counts.in, counts.out, by="mutant", suffixes=c(".in", ".out"))[, {
+  flanks <- pmax(flanks.in, flanks.out, 0, na.rm=TRUE)
+  list(mutant,
+       is.neutral=mutant %in% NEUTRAL,
+       gene=NA_integer_,
+       n.in, loss.in,
+       n.out, loss.out,
+       flanks=flanks,
+       abundance.in=ifelse(n.in > 0, n.in / (flanks * (1-loss.in)), 0),
+       abundance.out=ifelse(n.out > 0, n.out / (flanks * (1-loss.out)), 0)
+)}]
+counts[, stopifnot(is.na(n.in) == is.na(abundance.in)) ]
+counts[, stopifnot(is.na(n.out) == is.na(abundance.out)) ]
 
 # Fill in index of the gene (if any) affected by a mutant
 local({
-  allKOmeta <- data.table(mutant=mutants$Name, gene=mutants$GeneIndex)
-  counts[, "gene" := allKOmeta[counts, gene, on=c("mutant")] ]
+  mutant_gene <- data.table(mutant=mutants$Name, gene=mutants$GeneIndex)
+  counts[, "gene" := mutant_gene[counts, gene, on=c("mutant")] ]
 })
 ```
 
@@ -287,47 +290,51 @@ The number of remaining read pairs and the number of unique UMIs within these pa
 Also check the *TRUmiCount report* (found above under *Files*) for details about the performance of the [TRUmiCount](http://www.cibiv.at/software/trumicount) UMI filtering step.
 
 ```{r table_stats_in}
-message("Loading statistics from ", snakemake@input$stats_in_5p)
-stats_in_5p <- read.table(snakemake@input$stats_in_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
-message("Loading statistics from ", snakemake@input$stats_in_3p)
-stats_in_3p <- read.table(snakemake@input$stats_in_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+local({
+  message("Loading statistics from ", snakemake@input$stats_in_5p)
+  stats_in_5p <- read.table(snakemake@input$stats_in_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+  message("Loading statistics from ", snakemake@input$stats_in_3p)
+  stats_in_3p <- read.table(snakemake@input$stats_in_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
 
-stopifnot(all(stats_in_5p$`After Step` == stats_in_3p$`After Step`))
-stats <- data.frame(row.names=stats_in_5p$`After Step`,
-                    `#5\' Reads Input`=stats_in_5p$`#Reads`,
-                    `#3\' Reads Input`=stats_in_3p$`#Reads`,
-                    `#5\' UMIs Input`=stats_in_5p$`#UMIs`,
-                    `#3\' UMIs Input`=stats_in_3p$`#UMIs`,
-                    check.names=FALSE)
-for(c in c('#5\' Reads Input', '#3\' Reads Input', '#5\' UMIs Input', '#3\' UMIs Input')) {
-  stats[[c]] <- ifelse(!is.na(stats[[c]]),
-                       paste0(stats[[c]], " (",
-                              round(100*stats[[c]]/(stats[[c]][min(which(!is.na(stats[[c]])))])), "%)"),
-                       NA)
-}
-knitr::kable(stats)
+  stopifnot(all(stats_in_5p$`After Step` == stats_in_3p$`After Step`))
+  stats_in <- data.frame(row.names=stats_in_5p$`After Step`,
+                         `#5\' Reads Input`=stats_in_5p$`#Reads`,
+                         `#3\' Reads Input`=stats_in_3p$`#Reads`,
+                         `#5\' UMIs Input`=stats_in_5p$`#UMIs`,
+                         `#3\' UMIs Input`=stats_in_3p$`#UMIs`,
+                         check.names=FALSE)
+  for(c in c('#5\' Reads Input', '#3\' Reads Input', '#5\' UMIs Input', '#3\' UMIs Input')) {
+    stats_in[[c]] <- ifelse(!is.na(stats_in[[c]]),
+                            paste0(stats_in[[c]], " (",
+                                   round(100*stats_in[[c]]/(stats_in[[c]][min(which(!is.na(stats_in[[c]])))])), "%)"),
+                            NA)
+  }
+  knitr::kable(stats_in)
+})
 ```
 
 ```{r table_stats_out}
-message("Loading statistics from ", snakemake@input$stats_out_5p)
-stats_out_5p <- read.table(snakemake@input$stats_out_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
-message("Loading statistics from ", snakemake@input$stats_out_3p)
-stats_out_3p <- read.table(snakemake@input$stats_out_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+local({
+  message("Loading statistics from ", snakemake@input$stats_out_5p)
+  stats_out_5p <- read.table(snakemake@input$stats_out_5p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
+  message("Loading statistics from ", snakemake@input$stats_out_3p)
+  stats_out_3p <- read.table(snakemake@input$stats_out_3p, header=TRUE, sep="\t", comment.char='', na.strings='-', check.names=FALSE)
 
-stopifnot(all(stats_out_5p$`After Step` == stats_out_3p$`After Step`))
-stats <- data.frame(row.names=stats_out_5p$`After Step`,
-                    `#5\' Reads Output`=stats_out_5p$`#Reads`,
-                    `#3\' Reads Output`=stats_out_3p$`#Reads`,
-                    `#5\' UMIs Output`=stats_out_5p$`#UMIs`,
-                    `#3\' UMIs Output`=stats_out_3p$`#UMIs`,
-                    check.names=FALSE)
-for(c in c('#5\' Reads Output', '#3\' Reads Output', '#5\' UMIs Output', '#3\' UMIs Output')) {
-  stats[[c]] <- ifelse(!is.na(stats[[c]]),
-                       paste0(stats[[c]], " (",
-                              round(100*stats[[c]]/(stats[[c]][min(which(!is.na(stats[[c]])))])), "%)"),
-                       NA)
-}
-knitr::kable(stats)
+  stopifnot(all(stats_out_5p$`After Step` == stats_out_3p$`After Step`))
+  stats_out <- data.frame(row.names=stats_out_5p$`After Step`,
+                          `#5\' Reads Output`=stats_out_5p$`#Reads`,
+                          `#3\' Reads Output`=stats_out_3p$`#Reads`,
+                          `#5\' UMIs Output`=stats_out_5p$`#UMIs`,
+                          `#3\' UMIs Output`=stats_out_3p$`#UMIs`,
+                          check.names=FALSE)
+  for(c in c('#5\' Reads Output', '#3\' Reads Output', '#5\' UMIs Output', '#3\' UMIs Output')) {
+    stats_out[[c]] <- ifelse(!is.na(stats_out[[c]]),
+                             paste0(stats_out[[c]], " (",
+                                    round(100*stats_out[[c]]/(stats_out[[c]][min(which(!is.na(stats_out[[c]])))])), "%)"),
+                             NA)
+  }
+  knitr::kable(stats_out)
+})
 ```
 
 ## Correlation of 3' and 5' Flank Abundances
@@ -348,7 +355,7 @@ knitr::kable(data.table(
   "Loss-corrected (after TRUmiCount)",
   "Loss-corrected (after TRUmiCount)"
   ),
-  `Correlation 5' vs. 3 (intercept zero)'`=c(
+  `Correlation 5' vs. 3'`=c(
   join.flanks.as.columns(counts.flank.in)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
   join.flanks.as.columns(counts.flank.out)[, cor.intercept0(sqrt(n5p), sqrt(n3p))],
   join.flanks.as.columns(counts.flank.in)[, cor.intercept0(sqrt(n5p/(1-l5p)), sqrt(n3p/(1-l3p)))],
@@ -359,52 +366,54 @@ knitr::kable(data.table(
 The following plots show the correlation of 5' and 3' UMI counts (again raw and loss-corrected by TRUmiCount) in more detail.
 
 ```{r plot_corr_flanks, fig.height=6, fig.width=8}
-p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
-  missing <- !is.finite(n.obs.5p) | (n.obs.5p == 0) | !is.finite(n.obs.3p) | (n.obs.3p == 0)
-  o <- plot_ly(showlegend=first)
-  if (any(!missing))
-    o <- o %>% add_markers(x=n.obs.5p[!missing],
-                           y=n.obs.3p[!missing],
-                           color=I("black"),
-                           text=labels[!missing],
-                           name="UMIs found for 5' and 3' flank",
-                           legendgroup="nz",
-                           marker=list(symbol="circle-open"))
-  if (any(missing))
-    o <- o %>% add_markers(x=pmax(n.obs.5p[missing], 1.0, na.rm=TRUE),
-                           y=pmax(n.obs.3p[missing], 1.0, na.rm=TRUE),
-                           color=I("black"),
-                           text=labels[missing],
-                           name="No UMIs found for 5' or 3' flank",
-                           legendgroup="z",
-                           marker=list(symbol="x"))
-  o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs 5'")),
-                    yaxis=list(type="log", title=paste0(type, " #UMIs 3'")),
-                    annotations=list(x=0.4, y=1, text = main, xanchor="center", yanchor="bottom",
-                                     xref='paper', yref='paper',
-                                     showarrow=F, font=list(size=15)))
-  o
-}
+local({
+  p <- function(n.obs.5p, n.obs.3p, labels, type, first=FALSE, main) {
+    missing <- !is.finite(n.obs.5p) | (n.obs.5p == 0) | !is.finite(n.obs.3p) | (n.obs.3p == 0)
+    o <- plot_ly(showlegend=first)
+    if (any(!missing))
+      o <- o %>% add_markers(x=n.obs.5p[!missing],
+                             y=n.obs.3p[!missing],
+                             color=I("black"),
+                             text=labels[!missing],
+                             name="UMIs found for 5' and 3' flank",
+                             legendgroup="nz",
+                             marker=list(symbol="circle-open"))
+    if (any(missing))
+      o <- o %>% add_markers(x=pmax(n.obs.5p[missing], 1.0, na.rm=TRUE),
+                             y=pmax(n.obs.3p[missing], 1.0, na.rm=TRUE),
+                             color=I("black"),
+                             text=labels[missing],
+                             name="No UMIs found for 5' or 3' flank",
+                             legendgroup="z",
+                             marker=list(symbol="x"))
+    o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs 5'")),
+                      yaxis=list(type="log", title=paste0(type, " #UMIs 3'")),
+                      annotations=list(x=0.4, y=1, text = main, xanchor="center", yanchor="bottom",
+                                       xref='paper', yref='paper',
+                                       showarrow=F, font=list(size=15)))
+    o
+  }
 
-p.raw.in <- join.flanks.as.columns(counts.flank.in)[, {
-  p(n5p, n3p, mutant, main="Input 5' vs. 3' flank (raw)", type="Raw", first=TRUE)
-}]
-p.raw.out <- join.flanks.as.columns(counts.flank.out)[, {
-  p(n5p, n3p, mutant, main="Output 5' vs. 3' flank (raw)", type="Raw")
-}]
-p.corr.in <- d <- join.flanks.as.columns(counts.flank.in)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
-}]
-p.corr.out <- d <- join.flanks.as.columns(counts.flank.out)[, {
-  p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
-}]
-subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
-        titleX=TRUE, titleY=TRUE, margin=0.12) %>%
-layout(width=600, height=600,
-       margin=list(l=0, r=0, t=50, b=50),
-       legend=list(orientation="h", bgcolor="lightgrey",
-                   x=0, y=-0.2, xanchor="left", yanchor="top")) %>%
-toWebGL()
+  p.raw.in <- join.flanks.as.columns(counts.flank.in)[, {
+    p(n5p, n3p, mutant, main="Input 5' vs. 3' flank (raw)", type="Raw", first=TRUE)
+  }]
+  p.raw.out <- join.flanks.as.columns(counts.flank.out)[, {
+    p(n5p, n3p, mutant, main="Output 5' vs. 3' flank (raw)", type="Raw")
+  }]
+  p.corr.in <- d <- join.flanks.as.columns(counts.flank.in)[, {
+    p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Input 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
+  }]
+  p.corr.out <- d <- join.flanks.as.columns(counts.flank.out)[, {
+    p(n5p/(1-l5p), n3p/(1-l3p), mutant, main="Output 5' vs. 3' flank (loss-corr.)", type="Loss-corr.")
+  }]
+  subplot(list(p.raw.in, p.raw.out, p.corr.in, p.corr.out), nrows=2,
+          titleX=TRUE, titleY=TRUE, margin=0.12) %>%
+  layout(width=600, height=600,
+         margin=list(l=0, r=0, t=50, b=50),
+         legend=list(orientation="h", bgcolor="lightgrey",
+                     x=0, y=-0.2, xanchor="left", yanchor="top")) %>%
+  toWebGL()
+})
 ```
 
 __________
@@ -431,42 +440,44 @@ knitr::kable(data.table(
 The following plots show the correlation of input and output abundances in more detail.
 
 ```{r plot_corr_io, fig.height=3, fig.width=8}
-p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
-  missing <- !is.finite(abd.in) | (abd.in == 0) | !is.finite(abd.out) | (abd.out == 0)
-  o <- plot_ly(showlegend=first)
-  if (any(!missing))
-    o <- o %>% add_markers(x=abd.in[!missing],
-                           y=abd.out[!missing],
-                           color=I("black"),
-                           text=labels[!missing], name="present in input and output", legendgroup="nz",
-                           marker=list(symbol="circle-open"))
-  if (any(missing))
-    o <- o %>% add_markers(x=pmax(abd.in[missing], 0.5, na.rm=TRUE),
-                           y=pmax(abd.out[missing], 0.5, na.rm=TRUE),
-                           color=I("black"),
-                           text=labels[missing], name="missing in input or output", legendgroup="z",
-                          marker=list(symbol="x"))
-  o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
-                    yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
-                    annotations=list(x=0.4, y=1, text=main, xanchor="center", yanchor="bottom",
-                                    xref='paper', yref='paper',
-                                    showarrow=F, font=list(size=15)))
-  o
-}
-
-p.raw <- counts[, {
-  p(n.in, n.out, mutant, main="Input vs. Output (raw)", type="Raw", first=TRUE)
-}]
-p.corr <- counts[, {
-  p(abundance.in, abundance.out, mutant, main="Input vs. Output (loss-corr.)", type="Loss-corr.")
-}]
-subplot(list(p.raw, p.corr), nrows=1,
-        titleX=TRUE, titleY=TRUE, margin=0.12) %>%
-layout(width=600, height=300,
-       margin=list(l=0, r=0, t=50, b=50),
-       legend=list(orientation="h", bgcolor="lightgrey",
-                   x=0, y=-0.4, xanchor="left", yanchor="top")) %>%
-toWebGL()
+local({
+  p <- function(abd.in, abd.out, labels, type, first=FALSE, main) {
+    missing <- !is.finite(abd.in) | (abd.in == 0) | !is.finite(abd.out) | (abd.out == 0)
+    o <- plot_ly(showlegend=first)
+    if (any(!missing))
+      o <- o %>% add_markers(x=abd.in[!missing],
+                             y=abd.out[!missing],
+                             color=I("black"),
+                             text=labels[!missing], name="present in input and output", legendgroup="nz",
+                             marker=list(symbol="circle-open"))
+    if (any(missing))
+      o <- o %>% add_markers(x=pmax(abd.in[missing], 0.5, na.rm=TRUE),
+                             y=pmax(abd.out[missing], 0.5, na.rm=TRUE),
+                             color=I("black"),
+                             text=labels[missing], name="missing in input or output", legendgroup="z",
+                            marker=list(symbol="x"))
+    o <- o %>% layout(xaxis=list(type="log", title=paste0(type, " #UMIs in input")),
+                      yaxis=list(type="log", title=paste0(type, " #UMIs in output")),
+                      annotations=list(x=0.4, y=1, text=main, xanchor="center", yanchor="bottom",
+                                      xref='paper', yref='paper',
+                                      showarrow=F, font=list(size=15)))
+    o
+  }
+  
+  p.raw <- counts[, {
+    p(n.in, n.out, mutant, main="Input vs. Output (raw)", type="Raw", first=TRUE)
+  }]
+  p.corr <- counts[, {
+    p(abundance.in, abundance.out, mutant, main="Input vs. Output (loss-corr.)", type="Loss-corr.")
+  }]
+  subplot(list(p.raw, p.corr), nrows=1,
+          titleX=TRUE, titleY=TRUE, margin=0.12) %>%
+  layout(width=600, height=300,
+         margin=list(l=0, r=0, t=50, b=50),
+         legend=list(orientation="h", bgcolor="lightgrey",
+                     x=0, y=-0.4, xanchor="left", yanchor="top")) %>%
+  toWebGL()
+})
 ```
 
 __________
@@ -590,63 +601,64 @@ write.table(results, file=snakemake@output$table, col.names=TRUE, sep="\t", row.
 Due to the negative binomial model (see *Statistical Model and Parameters*), the power to detect changes in virulence increases with the input abundance of a mutant strain. The following plot shows the change in virulence (as log2 fold-change) against the input abundance, and indicates which mutant strins have a virulence significantly different from the neutral reference set at a *false discovery rate* (FDR) threshold of `r PLOT.FDR.THRESHOLD`.
 
 ```{r plot_log2fc}
-# Compute (approximate) insigificance region
-loss.out <- mean(results$loss.out, na.rm=TRUE)
-loss.in <- mean(results$loss.in, na.rm=TRUE)
-a.in <- 10**seq(from=log10(0.5), to=2*log10(max(results$abundance.in, na.rm=TRUE)), length.out=200)
-l2fc.low <- log2(pmax(qipsmodel(p=rep(PLOT.FDR.THRESHOLD, along.with=a.in),
-                                scale=null.model$scale, disp=null.model$disp,
-                                n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) - 1, 0) /
-                 ((1 - loss.out) * a.in * null.model$scale))
-l2fc.high <- log2(pmax(qipsmodel(p=rep(1 - PLOT.FDR.THRESHOLD, along.with=a.in),
-                                 scale=null.model$scale, disp=null.model$disp,
-                                 n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) + 1, 0) /
-                 ((1 - loss.out) * a.in * null.model$scale))
+local({
+  # Compute (approximate) insigificance region
+  loss.out <- mean(results$loss.out, na.rm=TRUE)
+  loss.in <- mean(results$loss.in, na.rm=TRUE)
+  a.in <- 10**seq(from=log10(0.5), to=2*log10(max(results$abundance.in, na.rm=TRUE)), length.out=200)
+  l2fc.low <- log2(pmax(qipsmodel(p=rep(PLOT.FDR.THRESHOLD, along.with=a.in),
+                                  scale=null.model$scale, disp=null.model$disp,
+                                  n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) - 1, 0) /
+                   ((1 - loss.out) * a.in * null.model$scale))
+  l2fc.high <- log2(pmax(qipsmodel(p=rep(1 - PLOT.FDR.THRESHOLD, along.with=a.in),
+                                   scale=null.model$scale, disp=null.model$disp,
+                                   n.in=a.in * (1 - loss.in), l.out=loss.out, l.in=loss.in) + 1, 0) /
+                   ((1 - loss.out) * a.in * null.model$scale))
 
-plot_ly(width=600, height=600) %>%
-add_trace(x=c(a.in, rev(a.in)),
-          y=pmax(c(rev(cummin(rev(l2fc.low))),
-                   cummax(rev(l2fc.high))),
-                 10*min(results$log2fc, 0, na.rm=TRUE)),
-          name='insignificant area (approximate, without FDR correction)',
-          type='scatter', mode='none', fill='toself', fillcolor='lightgrey') %>%
-add_trace(x=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), abundance.in],
-          y=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), log2fc],
-          text=results[!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD), mutant],
-          name='insignificant change of virulence',
-          marker=list(symbol="circle-open", color='darkgrey'),
-          type="scatter", mode="markers") %>%
-add_trace(x=results[is.neutral==TRUE, abundance.in],
-          y=results[is.neutral==TRUE, log2fc],
-          text=results[is.neutral==TRUE, mutant],
-          name='neutral reference set',
-          marker=list(symbol="circle-open", color='darkgreen'),
-          type="scatter", mode="markers") %>%
-add_trace(x=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), abundance.in],
-          y=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), log2fc],
-          text=results[is.neutral==FALSE & !is.finite(low.qval) & !is.finite(high.qval), mutant],
-          name='non-neutral',
-          marker=list(symbol="circle-open", color='black'),
-          type="scatter", mode="markers") %>%
-add_trace(x=results[low.qval <= PLOT.FDR.THRESHOLD, abundance.in],
-          y=results[low.qval <= PLOT.FDR.THRESHOLD, log2fc],
-          text=results[low.qval <= PLOT.FDR.THRESHOLD, mutant],
-          name='significantly reduced virulence',
-          marker=list(symbol="circle-open", color='red'),
-          type="scatter", mode="markers") %>%
-add_trace(x=results[high.qval <= PLOT.FDR.THRESHOLD, abundance.in],
-          y=results[high.qval <= PLOT.FDR.THRESHOLD, log2fc],
-          text=results[high.qval <= PLOT.FDR.THRESHOLD, mutant],
-          name='significantly increased virulence',
-          marker=list(symbol="circle-open", color='blue'),
-          type="scatter", mode="markers") %>%
-layout(xaxis=list(range=c(log10(0.5), ceiling(max(log10(results$abundance.in), na.rm=TRUE))), type="log",
-                  title="input abundance (loss-corr. #UMIs)"),
-       yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
-                          ceiling(max(results$log2fc, na.rm=TRUE))),
-                  title=paste0("virulence log2 fold change")),
-       legend=list(x=0, y=-0.15, xanchor="left", yanchor="top")) %>%
-toWebGL()
+  f.neutral <- expression(is.neutral & !is.na(low.qval) & !is.na(high.qval))
+  f.insig <- expression(!is.neutral & (low.qval >= PLOT.FDR.THRESHOLD) & (high.qval >= PLOT.FDR.THRESHOLD))
+  f.sig.low <- expression(low.qval <= PLOT.FDR.THRESHOLD)
+  f.sig.high <- expression(high.qval <= PLOT.FDR.THRESHOLD)
+
+  plot_ly(width=600, height=600) %>%
+  add_trace(x=c(a.in, rev(a.in)),
+            y=pmax(c(rev(cummin(rev(l2fc.low))),
+                     cummax(rev(l2fc.high))),
+                   10*min(results$log2fc, 0, na.rm=TRUE)),
+            name='insignificant area (approximate, without FDR correction)',
+            type='scatter', mode='none', fill='toself', fillcolor='lightgrey') %>%
+  add_trace(x=results[eval(f.insig), abundance.in],
+            y=results[eval(f.insig), log2fc],
+            text=results[eval(f.insig), mutant],
+            name='insignificant change of virulence',
+            marker=list(symbol="circle-open", color='darkgrey'),
+            type="scatter", mode="markers") %>%
+  add_trace(x=results[eval(f.neutral), abundance.in],
+            y=results[eval(f.neutral), log2fc],
+            text=results[eval(f.neutral), mutant],
+            name='neutral reference set',
+            marker=list(symbol="circle-open", color='darkgreen'),
+            type="scatter", mode="markers") %>%
+  add_trace(x=results[eval(f.sig.low), abundance.in],
+            y=results[eval(f.sig.low), log2fc],
+            text=results[eval(f.sig.low), mutant],
+            name='significantly reduced virulence',
+            marker=list(symbol="circle-open", color='red'),
+            type="scatter", mode="markers") %>%
+  add_trace(x=results[eval(f.sig.high), abundance.in],
+            y=results[eval(f.sig.high), log2fc],
+            text=results[eval(f.sig.high), mutant],
+            name='significantly increased virulence',
+            marker=list(symbol="circle-open", color='blue'),
+            type="scatter", mode="markers") %>%
+  layout(xaxis=list(range=c(log10(0.5), ceiling(max(log10(results$abundance.in), na.rm=TRUE))), type="log",
+                    title="input abundance (loss-corr. #UMIs)"),
+         yaxis=list(range=c(floor(min(results$log2fc, na.rm=TRUE)),
+                            ceiling(max(results$log2fc, na.rm=TRUE))),
+                    title=paste0("virulence log2 fold change")),
+         legend=list(x=0, y=-0.15, xanchor="left", yanchor="top")) %>%
+  toWebGL()
+})
 ```
 
 __________
