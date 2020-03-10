@@ -24,6 +24,7 @@ dependencies:
   - r-gwpcr>=0.9.10
   - r-rmarkdown>=1.12
   - r-plotly>=4.8.0
+  - r-venndiagram>=1.6.20
   - r-rmdformats>=0.3.5
   - samtools>=1.9
   - snakemake>=5.4.5

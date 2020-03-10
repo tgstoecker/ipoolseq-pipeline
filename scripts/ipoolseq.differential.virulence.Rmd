@@ -483,6 +483,23 @@ local({
 __________
 (Zero detected UMIs are shown in these logarithmic plots with a cross "x" instead of an open circle "o")
 
+## Overlap of input and output pools
+
+Virulences and p-values are computed only for mutants which are detected in the input *and* the output pool. The following Venn diagramm shows the number of mutants detected in each pool and their overlap.
+
+```{r plot_io_overlap, fig.height=1.5, fig.width=3}
+library(VennDiagram)
+grid.newpage()
+local({
+  d <- draw.pairwise.venn(counts[!is.na(abundance.in) & (abundance.in > 0), .N],
+                          counts[!is.na(abundance.out) & (abundance.out > 0), .N],
+                          counts[!is.na(abundance.out) & !is.na(abundance.out) & (abundance.in > 0) & (abundance.out > 0), .N],
+                          category=c("input", "output"),
+                          cat.dist=c(-0.025, -0.025), cat.pos=c(0,0))
+})
+```
+
+
 ## Abundance distribution for mutant classes *intergenic*, *non-essential* and *essential*
 
 The following boxplots show the distribution of abundances for mutants affecting either an *intergenic region*, an *non-essential gene* or an *essential gene*.
