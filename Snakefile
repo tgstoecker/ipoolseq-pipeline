@@ -176,18 +176,18 @@ rule ipoolseq_trim_pe:
 	only genomic sequences -- the parts overlapping the KO cassette are removed
 	"""
 	input:
-		r1="data/{dir}/{lib}:{flank}.tom.1.fq.gz",
-		r2="data/{dir}/{lib}:{flank}.tom.2.fq.gz",
+		r1="data/{dir}/{lib}+{flank}.tom.1.fq.gz",
+		r2="data/{dir}/{lib}+{flank}.tom.2.fq.gz",
 		fa=config_input_file('cassette', "data/{dir}/{lib}.trim.1.fq.gz")
 	output:
-		r1="data/{dir}/{lib}:{flank}.trim.1.fq.gz",
-		r2="data/{dir}/{lib}:{flank}.trim.2.fq.gz"
+		r1="data/{dir}/{lib}+{flank}.trim.1.fq.gz",
+		r2="data/{dir}/{lib}+{flank}.trim.2.fq.gz"
 	params:
 		flank="{flank}"
 	priority: 1
 	threads: 4
 	log:
-		"data/{dir}/{lib}:{flank}.trim.log"
+		"data/{dir}/{lib}+{flank}.trim.log"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
@@ -256,11 +256,11 @@ rule ipoolseq_assign_to_isites_pe:
 	found
 	"""
 	input:
-		bam_5p="data/{dir}/{lib}:5p.map.bam",
-		bam_3p="data/{dir}/{lib}:3p.map.bam"
+		bam_5p="data/{dir}/{lib}+5p.map.bam",
+		bam_3p="data/{dir}/{lib}+3p.map.bam"
 	output:
-		bam_5p="data/{dir}/{lib}:5p.assign.bam",
-		bam_3p="data/{dir}/{lib}:3p.assign.bam",
+		bam_5p="data/{dir}/{lib}+5p.assign.bam",
+		bam_3p="data/{dir}/{lib}+3p.assign.bam",
 		gff="data/{dir}/{lib}.isites.gff3.gz"
 	log:	"data/{dir}/{lib}.assign.log"
 	shell:
@@ -340,30 +340,30 @@ rule differential_virulence:
 	in the input pool
 	"""
 	input:
-		ann=config_input_file('reference_annotation', "data/{dir}/{exp}-in:5p.count.tab"),
-		essential=config_input_file('essential_genes', "data/{dir}/{exp}-in:5p.count.tab"),
+		ann=config_input_file('reference_annotation', "data/{dir}/{exp}-in+5p.count.tab"),
+		essential=config_input_file('essential_genes', "data/{dir}/{exp}-in+5p.count.tab"),
 		isites_in="data/{dir}/{exp}-in.isites.gff3.gz",
 		isites_out="data/{dir}/{exp}-out.isites.gff3.gz",
-		pool_in_5p="data/{dir}/{exp}-in:5p.count.tab",
-		pool_in_3p="data/{dir}/{exp}-in:3p.count.tab",
-		pool_out_5p="data/{dir}/{exp}-out:5p.count.tab",
-		pool_out_3p="data/{dir}/{exp}-out:3p.count.tab",
-		stats_in_5p="data/{dir}/{exp}-in:5p.stats.tab",
-		stats_in_3p="data/{dir}/{exp}-in:3p.stats.tab",
-		stats_out_5p="data/{dir}/{exp}-out:5p.stats.tab",
-		stats_out_3p="data/{dir}/{exp}-out:3p.stats.tab",
-		fastqc_html_in_5p_r1="data/{dir}/{exp}-in:5p.fastqc.1.html",
-		fastqc_html_in_5p_r2="data/{dir}/{exp}-in:5p.fastqc.2.html",
-		fastqc_html_in_3p_r1="data/{dir}/{exp}-in:3p.fastqc.1.html",
-		fastqc_html_in_3p_r2="data/{dir}/{exp}-in:3p.fastqc.2.html",
-		fastqc_html_out_5p_r1="data/{dir}/{exp}-out:5p.fastqc.1.html",
-		fastqc_html_out_5p_r2="data/{dir}/{exp}-out:5p.fastqc.2.html",
-		fastqc_html_out_3p_r1="data/{dir}/{exp}-out:3p.fastqc.1.html",
-		fastqc_html_out_3p_r2="data/{dir}/{exp}-out:3p.fastqc.2.html",
-		trumicount_pdf_in_5p="data/{dir}/{exp}-in:5p.count.pdf",
-		trumicount_pdf_in_3p="data/{dir}/{exp}-in:3p.count.pdf",
-		trumicount_pdf_out_5p="data/{dir}/{exp}-out:5p.count.pdf",
-		trumicount_pdf_out_3p="data/{dir}/{exp}-out:3p.count.pdf",
+		pool_in_5p="data/{dir}/{exp}-in+5p.count.tab",
+		pool_in_3p="data/{dir}/{exp}-in+3p.count.tab",
+		pool_out_5p="data/{dir}/{exp}-out+5p.count.tab",
+		pool_out_3p="data/{dir}/{exp}-out+3p.count.tab",
+		stats_in_5p="data/{dir}/{exp}-in+5p.stats.tab",
+		stats_in_3p="data/{dir}/{exp}-in+3p.stats.tab",
+		stats_out_5p="data/{dir}/{exp}-out+5p.stats.tab",
+		stats_out_3p="data/{dir}/{exp}-out+3p.stats.tab",
+		fastqc_html_in_5p_r1="data/{dir}/{exp}-in+5p.fastqc.1.html",
+		fastqc_html_in_5p_r2="data/{dir}/{exp}-in+5p.fastqc.2.html",
+		fastqc_html_in_3p_r1="data/{dir}/{exp}-in+3p.fastqc.1.html",
+		fastqc_html_in_3p_r2="data/{dir}/{exp}-in+3p.fastqc.2.html",
+		fastqc_html_out_5p_r1="data/{dir}/{exp}-out+5p.fastqc.1.html",
+		fastqc_html_out_5p_r2="data/{dir}/{exp}-out+5p.fastqc.2.html",
+		fastqc_html_out_3p_r1="data/{dir}/{exp}-out+3p.fastqc.1.html",
+		fastqc_html_out_3p_r2="data/{dir}/{exp}-out+3p.fastqc.2.html",
+		trumicount_pdf_in_5p="data/{dir}/{exp}-in+5p.count.pdf",
+		trumicount_pdf_in_3p="data/{dir}/{exp}-in+3p.count.pdf",
+		trumicount_pdf_out_5p="data/{dir}/{exp}-out+5p.count.pdf",
+		trumicount_pdf_out_3p="data/{dir}/{exp}-out+3p.count.pdf",
 		rmd="scripts/ipoolseq.differential.virulence.Rmd"
 	output:
 		table="data/{dir}/{exp}.dv.tab",
