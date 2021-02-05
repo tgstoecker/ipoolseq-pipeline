@@ -98,9 +98,7 @@ def hamming_distance(s1, s2):
 #   <filler> <one of TRIM_R2> || <rest>
 # Everthing before || is removed from the reads. The length of the filler
 # can be 0 up to TRIM_MAX_5PFILLER bases. The fixed parts TRIM_R1 resp. TRIM_R2
-# are allowed to contain up to ALLOWED_MISSMATCHES missmatches. N is treated as a
-# *match* within these regions. This is necessary because these fixed regions cause
-# problems for basecalling, are often contain manY Ns.
+# are allowed to contain up to TRIM_MAX_MM missmatches.
 #
 # Within these patterns, the following match group names are used:
 #   trim: While trimmed part, i.e. everthing before ||
