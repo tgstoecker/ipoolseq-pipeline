@@ -117,8 +117,8 @@ rule bam_to_fqgz_pe:
 	input:
 		"data/{dir}/{lib}.bam"
 	output:
-		r1=temporary("data/{dir}/{lib}.1.fq.gz"),
-		r2=temporary("data/{dir}/{lib}.2.fq.gz")
+		r1="data/{dir}/{lib}.1.fq.gz",
+		r2="data/{dir}/{lib}.2.fq.gz"
 	log:
 		"data/{dir}/{lib}.bam2fqgz.log"
 	shell:
@@ -149,8 +149,8 @@ rule adapter_readthrough_trim_pe:
 		r1="data/{dir}/{lib}.1.fq.gz",
 		r2="data/{dir}/{lib}.2.fq.gz"
 	output:
-		r1=temporary("data/{dir}/{lib}.tom.1.fq.gz"),
-		r2=temporary("data/{dir}/{lib}.tom.2.fq.gz")
+		r1="data/{dir}/{lib}.tom.1.fq.gz",
+		r2="data/{dir}/{lib}.tom.2.fq.gz"
 	params:
 		opts=config_options('trimmomatic', required=True),
 		scratch=default_scratch
