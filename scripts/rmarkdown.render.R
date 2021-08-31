@@ -16,7 +16,7 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
-library(utils)
+library(zip)
 library(rmarkdown)
 
 rmarkdown::render(input=snakemake@input$rmd,
@@ -31,4 +31,4 @@ zip(zipfile=snakemake@output$zip, files=c(
   unlist(snakemake@input),
   snakemake@output$html,
   snakemake@output$table
-))
+), mode="cherry-pick", compression_level=9)

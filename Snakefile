@@ -367,7 +367,7 @@ rule differential_virulence:
 		rmd="scripts/ipoolseq.differential.virulence.Rmd"
 	output:
 		table="data/{dir}/{exp}.dv.tab",
-		html="data/{dir}/{exp}.dv.html"
+		html="data/{dir}/{exp}.dv.html",
 		zip="data/{dir}/{exp}.dv.zip"
 	params:
 		version=VERSION,
