@@ -137,7 +137,7 @@ OVERLAP_SEED_MISSMATCHES=2
 OVERLAP_IDENTITY=0.9
 
 # *** Readname pattern. Group "bn" is the part that is the same for read1 and read2
-NAME_PATTERN = regex.compile('^(?P<bn>.*)/[12]$', regex.V1)
+NAME_PATTERN = regex.compile('^(?P<bn>[^ ]*)(/[12])?', regex.V1)
 
 # Holds the statistics collected while processings pairs
 Stats = namedlist('Stats', 'invalid_r1 invalid_r2 no_genomic flank_5p, flank_3p overlap', default=0)
