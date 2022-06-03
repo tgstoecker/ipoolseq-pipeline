@@ -1,4 +1,4 @@
-name: ipoolseq
+name: cbi_transposon_ipoolseq
 channels:
   - conda-forge
   - bioconda
