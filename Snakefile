@@ -167,7 +167,7 @@ rule adapter_readthrough_trim_pe:
 		"  {output.r2:q}\\\n"
 		"  {params.opts:q}"
 
-ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
+#ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
 
 rule ipoolseq_trim_pe:
 	"""Trims the iPoolSeq-specific technical sequences (including UMIs), append the UMI to the read name
@@ -216,7 +216,7 @@ rule fastqc_pe:
 		"rm {output:q}_fastqc.zip;\n"
 		"mv {output:q}_fastqc.html {output:q};\n"
 
-ruleorder: ipoolseq_trim_pe > bam_to_fqgz_pe
+#ruleorder: ipoolseq_trim_pe > bam_to_fqgz_pe
 
 rule map_pe:
 	"""Maps the (trimmed) reads to the genome
@@ -316,7 +316,7 @@ rule read_stats:
 		raw_r2="data/{dir}/{lib}.2.fq.gz",
 		map="data/{dir}/{lib}.map.bam",
 		assign="data/{dir}/{lib}.assign.bam",
-		count="data/{dir}/{lib}.count.tab"
+		counts="data/{dir}/{lib}.count.tab"
 	output:
 		stats="data/{dir}/{lib}.stats.tab"
 	threads: 4
@@ -328,7 +328,7 @@ rule read_stats:
 		"  {input.raw_r2:q}\\\n"
 		"  {input.map:q}\\\n"
 		"  {input.assign:q}\\\n"
-		"  {input.count:q}\\\n"
+		"  {input.counts:q}\\\n"
 		"  {output.stats:q}"
 
 rule differential_virulence:
