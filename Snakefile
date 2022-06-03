@@ -74,61 +74,61 @@ rule help:
 		      "PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.\n",
 		      file=sys.stderr)
 
-rule simulate_trumicount_output:
-	"""Simulates TRUmiCount-generated count tables
-	"""
-	input:
-		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab")
-	output:
-		pool_in="data/Simulation/sim-in.count.tab",
-		pool_out="data/Simulation/sim-out.count.tab",
-		truth="data/Simulation/sim.truth.tab"
-	script:	"scripts/ipoolseq.simulate.umicounts.R"
+#rule simulate_trumicount_output:
+#	"""Simulates TRUmiCount-generated count tables
+#	"""
+#	input:
+#		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab")
+#	output:
+#		pool_in="data/Simulation/sim-in.count.tab",
+#		pool_out="data/Simulation/sim-out.count.tab",
+#		truth="data/Simulation/sim.truth.tab"
+#	script:	"scripts/ipoolseq.simulate.umicounts.R"
 
-rule download_uhse_et_al:
-	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
-	params:
-		pool="{pool}",
-		experiment="{experiment}",
-		replicate="{replicate}"
-	wildcard_constraints:
-		experiment="A|B",
-		replicate="1|2|3",
-		pool="in|out"
-	shell:
-		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}';\n"
-		"fi;\n"
-		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
-		"echo \"Downloading $URL into {output}\";\n"
-		"curl -o {output:q}\\\n"
-		"  --continue -\\\n"
-		"  --retry 999\\\n"
-		"  --retry-max-time 0\\\n"
-		"  \"$URL\""
+#rule download_uhse_et_al:
+#	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
+#	params:
+#		pool="{pool}",
+#		experiment="{experiment}",
+#		replicate="{replicate}"
+#	wildcard_constraints:
+#		experiment="A|B",
+#		replicate="1|2|3",
+#		pool="in|out"
+#	shell:
+#		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}';\n"
+#		"fi;\n"
+#		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
+#		"echo \"Downloading $URL into {output}\";\n"
+#		"curl -o {output:q}\\\n"
+#		"  --continue -\\\n"
+#		"  --retry 999\\\n"
+#		"  --retry-max-time 0\\\n"
+#		"  \"$URL\""
 
-rule bam_to_fqgz_pe:
-	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
-	
-	From data/{lib}.bam, the two output files data/{lib}.1.fq.fz and data/{lib}.2.fq.gz are created
-	"""
-	input:
-		"data/{dir}/{lib}.bam"
-	output:
-		r1="data/{dir}/{lib}.1.fq.gz",
-		r2="data/{dir}/{lib}.2.fq.gz"
-	log:
-		"data/{dir}/{lib}.bam2fqgz.log"
-	shell:
-		"exec > >(tee {log:q}) 2>&1;\n"
-		"set -e; set -o pipefail;\n"
-		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";\n"
-		"samtools fastq -c1\\\n"
-		"  -1 {output.r1:q}\\\n"
-		"  -2 {output.r2:q}\\\n"
-		"  {input:q};"
+#rule bam_to_fqgz_pe:
+#	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
+#	
+#	From data/{lib}.bam, the two output files data/{lib}.1.fq.fz and data/{lib}.2.fq.gz are created
+#	"""
+#	input:
+#		"data/{dir}/{lib}.bam"
+#	output:
+#		r1="data/{dir}/{lib}.1.fq.gz",
+#		r2="data/{dir}/{lib}.2.fq.gz"
+#	log:
+#		"data/{dir}/{lib}.bam2fqgz.log"
+#	shell:
+#		"exec > >(tee {log:q}) 2>&1;\n"
+#		"set -e; set -o pipefail;\n"
+#		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";\n"
+#		"samtools fastq -c1\\\n"
+#		"  -1 {output.r1:q}\\\n"
+#		"  -2 {output.r2:q}\\\n"
+#		"  {input:q};"
 
 rule bam_idx:
 	"""Creates an index for a BAM file
