@@ -1,6 +1,6 @@
 ---
 title: "Differential Virulence Report for `r snakemake@params$exp` (`r snakemake@params$dir`)"
-author: "[iPoolSeq-Pipeline](http://www.cibiv.at/software/ipoolseq-pipeline) `r snakemake@params$version`"
+author: "[iPoolSeq-Pipeline](https://github.com/tgstoecker/ipoolseq-pipeline/tree/cbi_transposon) `r snakemake@params$version`"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   rmdformats::readthedown:
