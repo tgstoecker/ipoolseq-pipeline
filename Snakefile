@@ -20,6 +20,8 @@ include: "scripts/snakemake.inc"
 
 configfile: "cfg/config.yaml"
 
+containerized: "docker://tgstoecker/ipoolseq_cbi_transposon:latest"
+
 with open("VERSION") as f:
 	VERSION = f.read().strip()
 
@@ -135,10 +137,13 @@ rule bam_idx:
 	"""
 	input:	"data/{dir}/{lib}.bam"
 	output:	"data/{dir}/{lib}.bai"
+	conda:
+		"environment.yaml"
 	shell:
 		"samtools index\\\n"
 		"  {input:q}\\\n"
 		"  {output:q}"
+
 
 rule adapter_readthrough_trim_pe:
 	"""Trims read-throughs into the adapter on the other end using Trimmomatic
@@ -157,6 +162,8 @@ rule adapter_readthrough_trim_pe:
 	threads: 4
 	log:
 		"data/{dir}/{lib}.tom.log"
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
@@ -188,6 +195,8 @@ rule ipoolseq_trim_pe:
 	threads: 4
 	log:
 		"data/{dir}/{lib}+{flank}.trim.log"
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
@@ -206,6 +215,8 @@ rule fastqc_pe:
 		ri="1|2"
 	priority: 1
 	threads: 4
+	conda:
+		"environment.yaml"
 	shell:
 		"zcat {input:q}\\\n"
 		"| fastqc\\\n"
@@ -234,6 +245,8 @@ rule map_pe:
 	params:
 		opts=config_options('ngm'),
 		scratch=default_scratch
+	conda:
+		"environment.yaml"
 	threads: 8
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
@@ -263,6 +276,8 @@ rule ipoolseq_assign_to_isites_pe:
 		bam_3p="data/{dir}/{lib}+3p.assign.bam",
 		gff="data/{dir}/{lib}.isites.gff3.gz"
 	log:	"data/{dir}/{lib}.assign.log"
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"scripts/ipoolseq.assign.to.isites.py\\\n"
@@ -290,6 +305,8 @@ rule trumicount_pe:
 	log:	"data/{dir}/{lib}.count.log"
 	params:
 		opts=config_options('trumicount')
+	conda:
+		"environment.yaml"
 	threads: 16
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
@@ -319,6 +336,8 @@ rule read_stats:
 		counts="data/{dir}/{lib}.count.tab"
 	output:
 		stats="data/{dir}/{lib}.stats.tab"
+	conda:
+		"environment.yaml"
 	threads: 4
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
@@ -373,4 +392,6 @@ rule differential_virulence:
 		version=VERSION,
 		dir="{dir}",
 		exp="{exp}"
+	conda:
+		"environment.yaml"
 	script:	"scripts/rmarkdown.render.R"
