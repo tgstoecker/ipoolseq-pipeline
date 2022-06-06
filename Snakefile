@@ -16,6 +16,10 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
+from snakemake.utils import min_version
+
+min_version("7.0.0")
+
 include: "scripts/snakemake.inc"
 
 configfile: "cfg/config.yaml"

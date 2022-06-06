@@ -1,5 +1,7 @@
-# iPool-Seq for Transposons
-Development of Transposon based iPool-Seq - earlier versions can of be found [here](https://github.com/Cibiv/ipoolseq-pipeline/releases).
+# iPool-Seq for Transposons  
+[![Snakemake](https://img.shields.io/badge/snakemake->=7.0.0-brightgreen.svg)](https://snakemake.readthedocs.io)  
+  
+Development of Transposon based iPool-Seq developed in Cthe Crop Bioinformatics group at the University of Bonn - earlier versions can of be found [here](https://github.com/Cibiv/ipoolseq-pipeline/releases).
 
 ## Installing the pipeline
 
