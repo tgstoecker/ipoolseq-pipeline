@@ -94,7 +94,7 @@ FInally, to start the anyalsis enter:
 
 ## :framed_picture: Visualized
 
-![Alt text](./rulegraph_GRID.svg)  
+![Alt text](./rulegraph.svg)  
   
 ## More Information
 
