@@ -30,11 +30,11 @@ For this simply add the `--use-conda` flag to your snakemake command, e.g.:
 
 
 ### Option 3 (**recommended**) - use our Docker container
-To use the container simply add BOTH flags `--use-conda --use-singularity` to snakemake command, e.g.:  
+To use the container simply add BOTH flags `--use-conda --use-singularity` to your snakemake command, e.g.:  
 
 This will pull our ipoolseq_cbi_transposon docker container and then create rule specific (although for now all rules share one) conda environments from within the container.
 Take note that the installation of singularity is up to you and can sometimes be fiddly.
-The fastest way on a system for which you do not have admin/sudo rights is using conda and specifically requesting the rather old version of `singularity==3.6.1`.
+The fastest way on a system for which you do not have admin/sudo rights is using conda and specifically requesting a rather old version, namely `singularity==3.6.1`.
 
 ## Running the Pipeline:  
 
@@ -89,9 +89,13 @@ FInally, to start the anyalsis enter:
   snakemake --cores XX --use-conda --use-singularity data/{transposon}/{Name}.dv.html
 
 # depending on replicates or multiple experiments consider:
-  snakemake --cores XX data/{transposon}/{Name1, Name2}.{rep1, rep2}.dv.html
+  snakemake --cores XX data/{transposon}/{Name1,Name2}.{rep1,rep2}.dv.html
 ```
 
+## :framed_picture: Visualized
+
+![Alt text](./rulegraph_GRID.svg)  
+  
 ## More Information
 
 See http://www.cibiv.at/software/ipoolseq-pipeline, and our
