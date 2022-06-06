@@ -49,8 +49,10 @@ output:
 # Set "eval=TRUE" above to run this chunk interactively in R Studio,
 # and adjust the input and output files to point to the sample you
 # want to test with
-design <- "Transposon"
-replicate <- "r77647"
+#design <- "Transposon"
+#replicate <- "r77647"
+design <- "PiggyBac_2022"
+replicate <- "Exp1"
 setClass("SnakemakeStub", representation(input = "list", params = "list", output = "list"))
 snakemake <- new("SnakemakeStub",
                  input=list(ann=paste("..", "cfg", design, "annotation.gff3.gz", sep="/"),

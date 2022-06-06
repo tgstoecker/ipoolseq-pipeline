@@ -33,3 +33,5 @@ dependencies:
   - trumicount>=0.9.13
 #  - umi_tools_tuc=0.5.3
   - umi_tools>=1.1.2
+  - jupyterlab
+  - r-irkernel
