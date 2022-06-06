@@ -1,9 +1,12 @@
-name: ipoolseq
+name: cbi_transposon_ipoolseq
 channels:
   - conda-forge
   - bioconda
   - defaults
+  - cibiv
 dependencies:
+  - git
+  - git-lfs
   - bcbiogff>=0.6.4
   - biopython>=1.73
   - bzip2
@@ -21,9 +24,13 @@ dependencies:
   - r-gwpcr>=0.9.10
   - r-rmarkdown>=1.12
   - r-plotly>=4.8.0
+  - r-venndiagram>=1.6.20
   - r-rmdformats>=0.3.5
+  - r-zip
   - samtools>=1.9
   - snakemake>=5.4.5
   - trimmomatic>=0.39
   - trumicount>=0.9.13
-  - umi_tools=0.5.5
+  - umi_tools>=1.1.2
+  - jupyterlab
+  - r-irkernel

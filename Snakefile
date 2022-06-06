@@ -1,4 +1,4 @@
-# Snakefile, Copyright 2018, 2019 Florian G. Pflug
+# Snakefile, Copyright 2018, 2019, 2020 Florian G. Pflug
 #
 # This file is part of the iPool-Seq Analysis Pipeline
 #
@@ -16,9 +16,15 @@
 # along with the iPool-Seq Analysis Pipeline.  If not, see
 # <http://www.gnu.org/licenses/
 
+from snakemake.utils import min_version
+
+min_version("7.0.0")
+
 include: "scripts/snakemake.inc"
 
 configfile: "cfg/config.yaml"
+
+containerized: "docker://tgstoecker/ipoolseq_cbi_transposon:latest"
 
 with open("VERSION") as f:
 	VERSION = f.read().strip()
@@ -74,71 +80,74 @@ rule help:
 		      "PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.\n",
 		      file=sys.stderr)
 
-rule simulate_trumicount_output:
-	"""Simulates TRUmiCount-generated count tables
-	"""
-	input:
-		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab")
-	output:
-		pool_in="data/Simulation/sim-in.count.tab",
-		pool_out="data/Simulation/sim-out.count.tab",
-		truth="data/Simulation/sim.truth.tab"
-	script:	"scripts/ipoolseq.simulate.umicounts.R"
+#rule simulate_trumicount_output:
+#	"""Simulates TRUmiCount-generated count tables
+#	"""
+#	input:
+#		gff=config_input_file('knockouts', "data/Simulation/sim-in.count.tab")
+#	output:
+#		pool_in="data/Simulation/sim-in.count.tab",
+#		pool_out="data/Simulation/sim-out.count.tab",
+#		truth="data/Simulation/sim.truth.tab"
+#	script:	"scripts/ipoolseq.simulate.umicounts.R"
 
-rule download_uhse_et_al:
-	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
-	params:
-		pool="{pool}",
-		experiment="{experiment}",
-		replicate="{replicate}"
-	wildcard_constraints:
-		experiment="A|B",
-		replicate="1|2|3",
-		pool="in|out"
-	shell:
-		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}';\n"
-		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}';\n"
-		"fi;\n"
-		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
-		"echo \"Downloading $URL into {output}\";\n"
-		"curl -o {output:q}\\\n"
-		"  --continue -\\\n"
-		"  --retry 999\\\n"
-		"  --retry-max-time 0\\\n"
-		"  \"$URL\""
+#rule download_uhse_et_al:
+#	output:	"data/Uhse_et_al.2018/exp{experiment}.r{replicate}-{pool}.bam"
+#	params:
+#		pool="{pool}",
+#		experiment="{experiment}",
+#		replicate="{replicate}"
+#	wildcard_constraints:
+#		experiment="A|B",
+#		replicate="1|2|3",
+#		pool="in|out"
+#	shell:
+#		"if   [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'A' ]]; then ERRID=2190337; FILE='r4896/in{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'in'  && '{params.experiment}' == 'B' ]]; then ERRID=2190343; FILE='r5157/in{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'A' ]]; then ERRID=2190334; FILE='r4896/egb73r{params.replicate}';\n"
+#		"elif [[ '{params.pool}' == 'out' && '{params.experiment}' == 'B' ]]; then ERRID=2190340; FILE='r5157/od3r{params.replicate}';\n"
+#		"fi;\n"
+#		"URL='ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR219/ERR'$[$ERRID+{params.replicate}-1]/\"$FILE\"'.bam';\n"
+#		"echo \"Downloading $URL into {output}\";\n"
+#		"curl -o {output:q}\\\n"
+#		"  --continue -\\\n"
+#		"  --retry 999\\\n"
+#		"  --retry-max-time 0\\\n"
+#		"  \"$URL\""
 
-rule bam_to_fqgz_pe:
-	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
-	
-	From data/{lib}.bam, the two output files data/{lib}.1.fq.fz and data/{lib}.2.fq.gz are created
-	"""
-	input:
-		"data/{dir}/{lib}.bam"
-	output:
-		r1=temporary("data/{dir}/{lib}.1.fq.gz"),
-		r2=temporary("data/{dir}/{lib}.2.fq.gz")
-	log:
-		"data/{dir}/{lib}.bam2fqgz.log"
-	shell:
-		"exec > >(tee {log:q}) 2>&1;\n"
-		"set -e; set -o pipefail;\n"
-		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";\n"
-		"samtools fastq -c1\\\n"
-		"  -1 {output.r1:q}\\\n"
-		"  -2 {output.r2:q}\\\n"
-		"  {input:q};"
+#rule bam_to_fqgz_pe:
+#	"""Converts a BAM files contained paired-end reads into two (parallel) compressed FASTQ files
+#	
+#	From data/{lib}.bam, the two output files data/{lib}.1.fq.fz and data/{lib}.2.fq.gz are created
+#	"""
+#	input:
+#		"data/{dir}/{lib}.bam"
+#	output:
+#		r1="data/{dir}/{lib}.1.fq.gz",
+#		r2="data/{dir}/{lib}.2.fq.gz"
+#	log:
+#		"data/{dir}/{lib}.bam2fqgz.log"
+#	shell:
+#		"exec > >(tee {log:q}) 2>&1;\n"
+#		"set -e; set -o pipefail;\n"
+#		"echo \"*** Splitting {input} into {output.r1} and {output.r2}\";\n"
+#		"samtools fastq -c1\\\n"
+#		"  -1 {output.r1:q}\\\n"
+#		"  -2 {output.r2:q}\\\n"
+#		"  {input:q};"
 
 rule bam_idx:
 	"""Creates an index for a BAM file
 	"""
 	input:	"data/{dir}/{lib}.bam"
 	output:	"data/{dir}/{lib}.bai"
+	conda:
+		"environment.yaml"
 	shell:
 		"samtools index\\\n"
 		"  {input:q}\\\n"
 		"  {output:q}"
+
 
 rule adapter_readthrough_trim_pe:
 	"""Trims read-throughs into the adapter on the other end using Trimmomatic
@@ -149,14 +158,16 @@ rule adapter_readthrough_trim_pe:
 		r1="data/{dir}/{lib}.1.fq.gz",
 		r2="data/{dir}/{lib}.2.fq.gz"
 	output:
-		r1=temporary("data/{dir}/{lib}.tom.1.fq.gz"),
-		r2=temporary("data/{dir}/{lib}.tom.2.fq.gz")
+		r1="data/{dir}/{lib}.tom.1.fq.gz",
+		r2="data/{dir}/{lib}.tom.2.fq.gz"
 	params:
 		opts=config_options('trimmomatic', required=True),
 		scratch=default_scratch
 	threads: 4
 	log:
 		"data/{dir}/{lib}.tom.log"
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export SCRATCH={params.scratch:q}; export THREADS={threads};\n"
@@ -167,7 +178,7 @@ rule adapter_readthrough_trim_pe:
 		"  {output.r2:q}\\\n"
 		"  {params.opts:q}"
 
-ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
+#ruleorder: adapter_readthrough_trim_pe > bam_to_fqgz_pe
 
 rule ipoolseq_trim_pe:
 	"""Trims the iPoolSeq-specific technical sequences (including UMIs), append the UMI to the read name
@@ -176,21 +187,26 @@ rule ipoolseq_trim_pe:
 	only genomic sequences -- the parts overlapping the KO cassette are removed
 	"""
 	input:
-		r1="data/{dir}/{lib}.tom.1.fq.gz",
-		r2="data/{dir}/{lib}.tom.2.fq.gz",
+		r1="data/{dir}/{lib}+{flank}.tom.1.fq.gz",
+		r2="data/{dir}/{lib}+{flank}.tom.2.fq.gz",
 		fa=config_input_file('cassette', "data/{dir}/{lib}.trim.1.fq.gz")
 	output:
-		r1="data/{dir}/{lib}.trim.1.fq.gz",
-		r2="data/{dir}/{lib}.trim.2.fq.gz"
+		r1="data/{dir}/{lib}+{flank}.trim.1.fq.gz",
+		r2="data/{dir}/{lib}+{flank}.trim.2.fq.gz"
+	params:
+		flank="{flank}"
 	priority: 1
 	threads: 4
 	log:
-		"data/{dir}/{lib}.trim.log"
+		"data/{dir}/{lib}+{flank}.trim.log"
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
 		"scripts/ipoolseq.trim.py\\\n"
 		"  {input.fa:q}\\\n"
+		"  {params.flank:q}\\\n"
 		"  {input.r1:q}\\\n"
 		"  {input.r2:q}\\\n"
 		"  {output.r1:q}\\\n"
@@ -203,6 +219,8 @@ rule fastqc_pe:
 		ri="1|2"
 	priority: 1
 	threads: 4
+	conda:
+		"environment.yaml"
 	shell:
 		"zcat {input:q}\\\n"
 		"| fastqc\\\n"
@@ -213,7 +231,7 @@ rule fastqc_pe:
 		"rm {output:q}_fastqc.zip;\n"
 		"mv {output:q}_fastqc.html {output:q};\n"
 
-ruleorder: ipoolseq_trim_pe > bam_to_fqgz_pe
+#ruleorder: ipoolseq_trim_pe > bam_to_fqgz_pe
 
 rule map_pe:
 	"""Maps the (trimmed) reads to the genome
@@ -231,6 +249,8 @@ rule map_pe:
 	params:
 		opts=config_options('ngm'),
 		scratch=default_scratch
+	conda:
+		"environment.yaml"
 	threads: 8
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
@@ -243,29 +263,33 @@ rule map_pe:
 		"  {output.bai:q}\\\n"
 		"  {params.opts:q}"
 
-rule ipoolseq_assign_to_knockouts_pe:
-	"""Assign the mapped reads to the individual KO strains
+ruleorder: map_pe > bam_idx
 
-	The output reads carry an XT tag that states the name of the KO strain (from the GFF files
-	showing the positions of the KO cassette insertions) and the flank (3' or 5') of the KO
-	cassette that the read belongs to, in the form '<Name>:{3,5}p'
+rule ipoolseq_assign_to_isites_pe:
+	"""Assign the mapped reads to transposon insertion sites
 
-	The GFF file listing the KO cassette insertion positions is set via cfg/config.yaml
+	The output reads carry an XT tag that contains the chromosome, position and flank of
+	the insertion site. Insertion sites are only accepted if both 5' and 3' fragments are
+	found
 	"""
 	input:
-		bam="data/{dir}/{lib}.map.bam",
-		gff=config_input_file('knockouts', "data/{dir}/{lib}.assign.bam")
-	output:	"data/{dir}/{lib}.assign.bam"
+		bam_5p="data/{dir}/{lib}+5p.map.bam",
+		bam_3p="data/{dir}/{lib}+3p.map.bam"
+	output:
+		bam_5p="data/{dir}/{lib}+5p.assign.bam",
+		bam_3p="data/{dir}/{lib}+3p.assign.bam",
+		gff="data/{dir}/{lib}.isites.gff3.gz"
 	log:	"data/{dir}/{lib}.assign.log"
-	params:
-		opts=config_options('knockout_assignment'),
+	conda:
+		"environment.yaml"
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
-		"scripts/ipoolseq.assign.to.knockouts.py\\\n"
-		"  {params.opts}\\\n"
-		"  {input.gff:q}\\\n"
-		"  {input.bam:q}\\\n"
-		"  {output:q}"
+		"scripts/ipoolseq.assign.to.isites.py\\\n"
+		"  --output-gff {output.gff:q}\\\n"
+		"  {input.bam_5p:q}\\\n"
+		"  {input.bam_3p:q}\\\n"
+		"  {output.bam_5p:q}\\\n"
+		"  {output.bam_3p:q}"
 
 rule trumicount_pe:
 	"""Computes the number of UMIs per flank (5' and 3') of each of the knockouts
@@ -279,11 +303,15 @@ rule trumicount_pe:
 		bam="data/{dir}/{lib}.assign.bam",
 		bai="data/{dir}/{lib}.assign.bai"
 	output: counts="data/{dir}/{lib}.count.tab",
+		umis="data/{dir}/{lib}.umis.tab",
+		readdist="data/{dir}/{lib}.readdist.tab",
 		plot="data/{dir}/{lib}.count.pdf"
 	log:	"data/{dir}/{lib}.count.log"
 	params:
 		opts=config_options('trumicount')
-	threads: 4
+	conda:
+		"environment.yaml"
+	threads: 16
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"trumicount\\\n"
@@ -291,7 +319,10 @@ rule trumicount_pe:
 		"  --group-per gene\\\n"
 		"  --include-filter-statistics\\\n"
 		"  --output-counts {output.counts:q}\\\n"
+		"  --output-umis {output.umis:q}\\\n"
 		"  --output-plot {output.plot:q}\\\n"
+		"  --output-readdist {output.readdist:q}\\\n"
+		"  --paired\\\n"
 		"  --umitools-option --per-gene\\\n"
 		"  --umitools-option --gene-tag=XT\\\n"
                 "  --molecules 1\\\n"
@@ -302,21 +333,25 @@ rule read_stats:
 	"""Collects statistics about the number of reads and UMIs remaing after each step
 	"""
 	input:
-		raw="data/{dir}/{lib}.bam",
+		raw_r1="data/{dir}/{lib}.1.fq.gz",
+		raw_r2="data/{dir}/{lib}.2.fq.gz",
 		map="data/{dir}/{lib}.map.bam",
 		assign="data/{dir}/{lib}.assign.bam",
-		count="data/{dir}/{lib}.count.tab"
+		counts="data/{dir}/{lib}.count.tab"
 	output:
 		stats="data/{dir}/{lib}.stats.tab"
+	conda:
+		"environment.yaml"
 	threads: 4
 	shell:
 		"exec > >(tee {log:q}) 2>&1;\n"
 		"export THREADS={threads};\n"
 		"scripts/read_stats.sh\\\n"
-		"  {input.raw:q}\\\n"
+		"  {input.raw_r1:q}\\\n"
+		"  {input.raw_r2:q}\\\n"
 		"  {input.map:q}\\\n"
 		"  {input.assign:q}\\\n"
-		"  {input.count:q}\\\n"
+		"  {input.counts:q}\\\n"
 		"  {output.stats:q}"
 
 rule differential_virulence:
@@ -328,23 +363,39 @@ rule differential_virulence:
 	in the input pool
 	"""
 	input:
-		gff=config_input_file('knockouts', "data/{dir}/{exp}"),
-		pool_in="data/{dir}/{exp}-in.count.tab",
-		pool_out="data/{dir}/{exp}-out.count.tab",
-		stats_in="data/{dir}/{exp}-in.stats.tab",
-		stats_out="data/{dir}/{exp}-out.stats.tab",
-		fastqc_html_in_r1="data/{dir}/{exp}-in.fastqc.1.html",
-		fastqc_html_in_r2="data/{dir}/{exp}-in.fastqc.2.html",
-		fastqc_html_out_r1="data/{dir}/{exp}-out.fastqc.1.html",
-		fastqc_html_out_r2="data/{dir}/{exp}-out.fastqc.2.html",
-		trumicount_pdf_in="data/{dir}/{exp}-in.count.pdf",
-		trumicount_pdf_out="data/{dir}/{exp}-out.count.pdf",
+		ann=config_input_file('reference_annotation', "data/{dir}/{exp}-in+5p.count.tab"),
+		essential=config_input_file('essential_genes', "data/{dir}/{exp}-in+5p.count.tab"),
+		isites_in="data/{dir}/{exp}-in.isites.gff3.gz",
+		isites_out="data/{dir}/{exp}-out.isites.gff3.gz",
+		pool_in_5p="data/{dir}/{exp}-in+5p.count.tab",
+		pool_in_3p="data/{dir}/{exp}-in+3p.count.tab",
+		pool_out_5p="data/{dir}/{exp}-out+5p.count.tab",
+		pool_out_3p="data/{dir}/{exp}-out+3p.count.tab",
+		stats_in_5p="data/{dir}/{exp}-in+5p.stats.tab",
+		stats_in_3p="data/{dir}/{exp}-in+3p.stats.tab",
+		stats_out_5p="data/{dir}/{exp}-out+5p.stats.tab",
+		stats_out_3p="data/{dir}/{exp}-out+3p.stats.tab",
+		fastqc_html_in_5p_r1="data/{dir}/{exp}-in+5p.fastqc.1.html",
+		fastqc_html_in_5p_r2="data/{dir}/{exp}-in+5p.fastqc.2.html",
+		fastqc_html_in_3p_r1="data/{dir}/{exp}-in+3p.fastqc.1.html",
+		fastqc_html_in_3p_r2="data/{dir}/{exp}-in+3p.fastqc.2.html",
+		fastqc_html_out_5p_r1="data/{dir}/{exp}-out+5p.fastqc.1.html",
+		fastqc_html_out_5p_r2="data/{dir}/{exp}-out+5p.fastqc.2.html",
+		fastqc_html_out_3p_r1="data/{dir}/{exp}-out+3p.fastqc.1.html",
+		fastqc_html_out_3p_r2="data/{dir}/{exp}-out+3p.fastqc.2.html",
+		trumicount_pdf_in_5p="data/{dir}/{exp}-in+5p.count.pdf",
+		trumicount_pdf_in_3p="data/{dir}/{exp}-in+3p.count.pdf",
+		trumicount_pdf_out_5p="data/{dir}/{exp}-out+5p.count.pdf",
+		trumicount_pdf_out_3p="data/{dir}/{exp}-out+3p.count.pdf",
 		rmd="scripts/ipoolseq.differential.virulence.Rmd"
 	output:
 		table="data/{dir}/{exp}.dv.tab",
-		html="data/{dir}/{exp}.dv.html"
+		html="data/{dir}/{exp}.dv.html",
+		zip="data/{dir}/{exp}.dv.zip"
 	params:
 		version=VERSION,
 		dir="{dir}",
 		exp="{exp}"
+	conda:
+		"environment.yaml"
 	script:	"scripts/rmarkdown.render.R"

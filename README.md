@@ -1,64 +1,102 @@
-# Installing the pipeline
+# iPool-Seq for Transposons  
+[![Snakemake](https://img.shields.io/badge/snakemake->=7.0.0-brightgreen.svg)](https://snakemake.readthedocs.io)  
+  
+Development of Transposon based iPool-Seq developed in the Crop Bioinformatics group at the University of Bonn - earlier versions can of be found [here](https://github.com/Cibiv/ipoolseq-pipeline/releases).
 
-Download the [latest version](https://github.com/Cibiv/ipoolseq-pipeline/archive/latest-release.zip)
-of the iPool-Seq pipeline, and unzip it. On a linux terminal, this is achieved with
+## Installing the pipeline
+
+Clone this repo:
 
 ```
-VER=latest-release
-URL=http://github.com/Cibiv/ipoolseq-pipeline/archive
-curl -L -O $URL/$VER.tar.gz
-tar xzf $VER.tar.gz
-cd ipoolseq-pipeline-$VER
+  git clone https://github.com/tgstoecker/ipoolseq-pipeline.git
+  cd ipoolseq-pipeline
 ```
 
-Instead, the desired [release](https://github.com/Cibiv/ipoolseq-pipeline/releases)
-can of course also be downloaded and unpacked manually, or cloned using `git clone`.
-In that case, all further commands must be entered in a terminal windows whose current
-directory is the root directory of the pipeline.
-
-# Installing a Bioconda environment containing all necessary dependencies
+### Option 1 - Installing a Bioconda environment containing all necessary dependencies
 
 The file "environment.yaml" defines a Conda (https://conda.io) environment that
-provides all programs necessary for running the iPool-Seq analysis pipeline. To
-ensure reproducibility of that environment even if Conda packages are replaced
-and removed, our source code repository also contains "environment.tar.gz", a
-conda-pack archive of that environent. To unpack that environment into
-"./environment" and make it usable, run
+provides all programs necessary for running the iPool-Seq analysis pipeline.  
+Installation of the environment with either conda or mamba & followed by activation:  
 
 ```
-./install-environment.sh
+  mamba env create -f environment.yaml
+  conda activate ipoolseq-pipeline
 ```
 
-*Note: The script "install-environment.sh" will download "environment.tar.gz" from GitHub
-if necessary - as a git LFS object, pristine checkouts or sourcecode archives from
-GitHub may contain a pointer file instead of the actual archive. If the download
-should fail, you can also manually download
-[environment.tar.gz](https://github.com/Cibiv/ipoolseq-pipeline/raw/master/environment.tar.gz)
-and place it in the root directory of the pipeline before running "install-environment.sh"*
+### Option 2 - Installing software during runtime of the pipeline
+Currently, we have one environment.yaml file that isn't split into smaller chunks for individual rules as it is not very large in size.
+Nevertheless all rules are linked via the "conda:" directive to this environment.yaml file so that quick installation at runtime is possible.  
+For this simply add the `--use-conda` flag to your snakemake command, e.g.:  
 
-Remember that (as all conda environments), this environment must, before it
-can be used, be activated for the current terminal session by doing
 
-```
-source ./environment/bin/activate
-```
+### Option 3 (**recommended**) - use our Docker container
+To use the container simply add BOTH flags `--use-conda --use-singularity` to your snakemake command, e.g.:  
 
-*This step must be repeated for each new terminal session*
+This will pull our ipoolseq_cbi_transposon docker container and then create rule specific (although for now all rules share one) conda environments from within the container.
+Take note that the installation of singularity is up to you and can sometimes be fiddly.
+The fastest way on a system for which you do not have admin/sudo rights is using conda and specifically requesting a rather old version, namely `singularity==3.6.1`.
 
-# Running the Pipeline on the 12 libraries of Uhse et al.
+## Running the Pipeline:  
 
-The following command downloads the raw sequencing reads for the 12 (2
-experiments, 3 replicates for each, each replicate consists of an input and
-an output pool) libraries from Uhse et al., removes read-throughs and
-technical sequences from the reads, maps them to the U. maydis genome, and
-counts the number of UMIs per insertional knockout. The number of cores (8)
-should be adjusted to the number of cores available.
+If need be, adjust the config file under `cfg/` and the files under the transposon dir `cfg/{transposon}/`.
+The standard currently is `cfg/PiggyBac_2022/`.  
+Here you will find 4 files:
 
 ```
-  snakemake --cores 8 data/Uhse_et_al.2018/exp{A,B}.r{1,2,3}.dv.html
+ - cassete.fa
+ - essential.tab
+ - reference.fa
+ - annotation.gff3.gz
 ```
 
-# More Information
+`reference.fa` & `annotation.gff3.gz` are the ref assembly and corresponding annotation for the fungus being investigated.  
+`cassete.fa` defines the left and right border transposon sequence with which we identify the insertion sites.  
+`essential.tab` is a one column info file designating the current list of essential genes known for the fungus. With this we add additional information to the final report.  
+The number of cores (XX) should be adjusted to personal compute environments capabilities.
+
+As input data you must also provide paired-end sequencing reads, optimally split into 5' and 3' end libraries for the transposon. If both libraries were sequenced together this is however no problem.  
+These seq. reads should be deposited inside a `data/{transposon}` directory - in our standard case `cfg/PiggyBac_2022/`.
+Read file names HAVE to adhere o the following schema:  
+`{Name}-{in/out}+{3/5}p.{1/2}.fq.gz`  
+  
+A complete set of typical input files would thus look like this:  
+
+```
+  #in 3p
+  A_vs_B-in+3p.1.fq.gz
+  A_vs_B-in+3p.2.fq.gz
+  #in 5p
+  A_vs_B-in+5p.1.fq.gz
+  A_vs_B-in+5p.2.fq.gz
+  # out 3p
+  A_vs_B-out+3p.1.fq.gz
+  A_vs_B-out+3p.2.fq.gz
+  # out 5p
+  A_vs_B-out+5p.1.fq.gz
+  A_vs_B-out+5p.2.fq.gz
+```
+
+Note that if you have **sequenced 3' & 5' together** and thus do not possess the fine-grained split as in the example above, you can simply copy all files and name one set with `3p` and the other with `5p`.  
+Based on the input file name the workflow is capable of automatically discarding "wrong" fragments respectively.  
+  
+FInally, to start the anyalsis enter:
+
+```
+  snakemake --cores XX data/{transposon}/{Name}.dv.html
+# or
+  snakemake --cores XX --use-conda data/{transposon}/{Name}.dv.html
+# or
+  snakemake --cores XX --use-conda --use-singularity data/{transposon}/{Name}.dv.html
+
+# depending on replicates or multiple experiments consider:
+  snakemake --cores XX data/{transposon}/{Name1,Name2}.{rep1,rep2}.dv.html
+```
+
+## :framed_picture: Visualized
+
+![Alt text](./rulegraph.svg)  
+  
+## More Information
 
 See http://www.cibiv.at/software/ipoolseq-pipeline, and our
 [publication (Uhse *et al.*, 2019)](http://doi.org/10.1002/cppb.20097) in
@@ -66,7 +104,7 @@ See http://www.cibiv.at/software/ipoolseq-pipeline, and our
 data-analysis parts of iPool-Seq in detail, and include a step-by-step
 description of how to use this pipeline.
 
-# References
+## References
 
 Simon Uhse, Florian G. Pflug, Arndt von Haeseler, Armin Djamei (2019). Insertion pool sequencing
 for insertional mutant analysis in complex host-microbe interactions. *Current Protocols in

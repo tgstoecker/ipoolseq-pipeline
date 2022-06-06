@@ -2,6 +2,14 @@ reference_genome:
   - file: 'data/{dir}/{lib}'
     opts: 'cfg/{dir}/reference.fa'
 
+reference_annotation:
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/annotation.gff3.gz'
+
+essential_genes:
+  - file: 'data/{dir}/{lib}'
+    opts: 'cfg/{dir}/essential.tab'
+
 knockouts:
   - file: 'data/Simulation/{lib}'
     opts: 'cfg/Uhse_et_al.2018/knockouts.gff'
@@ -25,11 +33,15 @@ knockout_assignment:
     opts: '--mapping-fuzzyness 10 --max-fragment-length 1000'
 
 trumicount:
-  - file: 'data/Uhse_et_al.2018/expB.r1-in.*'
-    opts: '--threshold 2'
-  - file: 'data/Uhse_et_al.2018/expB.r1-out.*'
-    opts: '--threshold 5'
-  - file: 'data/Uhse_et_al.2018/expB.r2-out.*'
-    opts: '--threshold 5'
-  - file: 'data/Uhse_et_al.2018/expB.r3-out.*'
-    opts: '--threshold 9'
+#  - file: 'data/Uhse_et_al.2018/expB.r1-in.*'
+#    opts: '--threshold 2'
+#  - file: 'data/Uhse_et_al.2018/expB.r1-out.*'
+#    opts: '--threshold 5'
+#  - file: 'data/Uhse_et_al.2018/expB.r2-out.*'
+#    opts: '--threshold 5'
+#  - file: 'data/Uhse_et_al.2018/expB.r3-out.*'
+#    opts: '--threshold 9'
+#  - file: 'data/Transposon/r77647-*'
+#    opts: '--threshold 2 --plot-hist-xmax 40 --plot-hist-bin 1 --umitools-option --edit-distance-threshold=2'
+  - file: 'data/PiggyBac_2022/Input_vs_Sorbitol-*'
+    opts: '--threshold 2 --plot-hist-xmax 40 --plot-hist-bin 1 --umitools-option --edit-distance-threshold=2'

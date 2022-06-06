@@ -84,7 +84,7 @@ class read_pair_iterator:
   """
 
   # Queue entries
-  read_pair = namedlist("read_pair", ['left', 'right', 'complete'])
+  read_pair = namedlist("read_pair", ['left', 'right', 'left_placeholder', 'right_placeholder', 'complete'])
 
   # Possible entries in the <item> parameter
   READ_1 = 0
@@ -96,15 +96,15 @@ class read_pair_iterator:
 
   # Returns item entry for a given entry type
   item_entry = {
-    READ_1: lambda left, right: left if left.is_read1 else right,
-    READ_2: lambda left, right: left if left.is_read2 else right,
-    READ_FWD: lambda left, right: left if not left.is_reverse else right,
-    READ_REV: lambda left, right: left if left.is_reverse else right,
-    READ_LEFT: lambda left, right: left,
-    READ_RIGHT: lambda left, right: right
+    READ_1: lambda left, right: 0 if left.is_read1 else 1,
+    READ_2: lambda left, right: 0 if left.is_read2 else 1,
+    READ_FWD: lambda left, right: 0 if not left.is_reverse else 1,
+    READ_REV: lambda left, right: 0 if left.is_reverse else 1,
+    READ_LEFT: lambda left, right: 0,
+    READ_RIGHT: lambda left, right: 1
   }
 
-  def __init__(self, read_iterator, item=(READ_FWD, READ_REV), skip_unpaired=True):
+  def __init__(self, read_iterator, item=(READ_FWD, READ_REV), output=None, skip_unpaired=True):
     # Settings
     self.skip_unpaired = skip_unpaired
     self.item = item
@@ -114,7 +114,14 @@ class read_pair_iterator:
     self.sequence = None
     self.queue = deque()
     self.left_names = dict()
-    # Statistis
+    # Current item
+    self.current_pair = None
+    self.current_item_read_indices = None
+    self.current_item = None
+    self.current_item_written = False
+    # Output queue (must be an instance of reorder_buffer)
+    self.output = output
+    # Statistics
     self.skipped = defaultdict(int)
     self.total = 0
 
@@ -124,7 +131,15 @@ class read_pair_iterator:
   def __next__(self):
     # Repeat until a valid pair is found
     while True:
-      # I. Consume input until a complete pair is available
+      # I. If the previous pair wasn't written to the output, remove the reads placeholders
+      if self.output is not None and self.current_pair is not None and not self.current_item_written:
+        self.output.dontfill(self.current_pair.left_placeholder)
+        self.output.dontfill(self.current_pair.right_placeholder)
+        self.current_pair.left_placeholder = None
+        self.current_pair.right_placeholder = None
+      self.current_item_written = False
+
+      # II. Consume input until a complete pair is available
       #
       # Scan ahead until the front of the queue contains a complete pair.
       while not self.queue or not self.queue[0].complete:
@@ -132,7 +147,6 @@ class read_pair_iterator:
 
         # 1. Fetch read
         #
-        sequence_changed = False
         try:
           r = self.iterator.__next__()
         except StopIteration:
@@ -163,7 +177,8 @@ class read_pair_iterator:
           self.total += 1
           if not self.skip_unpaired:
             # B, mapped mate. Create pair entry with missing mate, enqueue.
-            p = read_pair_iterator.read_pair(r, None, True)
+            r_ph = self.output.placeholder() if self.output is not None else None
+            p = read_pair_iterator.read_pair(r, None, r_ph, None, True)
             self.queue.append(p)
           else:
             # B, mapped mate. Ignore because skip_unpaired is set
@@ -178,15 +193,17 @@ class read_pair_iterator:
           p = self.left_names[r.query_name]
           del self.left_names[r.query_name]
           p.right = r
+          p.right_placeholder = self.output.placeholder() if self.output is not None else None
           p.complete = True
         else:
           # D, and pair has no entry yet. Create one and flag as incomplete.
-          p = read_pair_iterator.read_pair(r, None, False)
+          r_ph = self.output.placeholder() if self.output is not None else None
+          p = read_pair_iterator.read_pair(r, None, r_ph, None, False)
           self.queue.append(p)
           self.left_names[r.query_name] = p
           self.total += 1
 
-      # II. Dequeue pair and return
+      # III. Dequeue pair and return
       #
       # Dequeue and return frontmost pair, which is now known to be complete
       # We assume that exactly one of the reads maps to the forward strand,
@@ -194,6 +211,8 @@ class read_pair_iterator:
       # to the right of the reverse read (i.e., if they look like this:
       # <--| |-->), the pair is skipped.
       p = self.queue.popleft()
+      self.current_pair = p
+      # Validate current pair
       if (p.right is not None) and (p.left.is_reverse == p.right.is_reverse):
         raise RuntimeError(
             "concordant pairs expected to have orientation FR or RF")
@@ -202,7 +221,32 @@ class read_pair_iterator:
         self.skipped['outwards'] += 1
         continue
       # Construct tuple to return, according to the layout desired by the user (self.item)
-      return [self.item_entry[e](p.left, p.right) for e in self.item]
+      # We store the indices (0 for left, 1 for right) of all reads in the returned item
+      # in self.current_item_read_indices, which allows write() to figure out which reads
+      # was the "left" and which read was the "right" read.
+      self.current_item_read_indices = [ self.item_entry[e](p.left, p.right) for e in self.item ]
+      self.current_item = [ p.left if i == 0 else p.right for i in self.current_item_read_indices ]
+      return self.current_item
+
+  def write(self, read_a, read_b):
+    if self.output is None:
+      return
+    if self.current_item_written:
+      raise RuntimeError("write() may be invoked at most once per input pair")
+    # Lookup output placeholders for the reads and fill in reads instead
+    try:
+      for i in range(0, 2):
+        if self.current_item_read_indices[i] == 0:
+          ph = self.current_pair.left_placeholder
+          self.current_pair.left_placeholder = None
+        elif self.current_item_read_indices[i] == 1:
+          ph = self.current_pair.right_placeholder
+          self.current_pair.right_placeholder = None
+        else:
+          raise RuntimeError("invalid index in current_item_read_indices")
+        self.output.fillin(read_a if i == 0 else read_b, ph)
+    finally:
+      self.current_item_written = True
 
   # Iterator reached the next sequence.
   # No proper pairs should extend over multiple sequences, so warn if that is the case
@@ -215,6 +259,9 @@ class read_pair_iterator:
     if incomplete != len(self.left_names):
       raise RuntimeError("inconsistent queue state, %d incomplete pairs but %d left_names entries" %
                          (incomplete, len(self.left_names)))
+    if (self.output is not None) and (self.output.nr_postponed() > 0):
+      raise RuntimeError("inconsistent output state, %d postponed reads at the end of %s" %
+                         (self.output.nr_postponed(), self.sequence))
     self.queue.clear()
     self.left_names.clear()
 
@@ -354,10 +401,7 @@ class reorder_buffer:
     self.postponed.append(ph)
     return ph
   
-  def fillin(self, object, placeholder = None):
-    # If no placeholder is specified, assume it goes at the end
-    if placeholder == None:
-      return self.write(object)
+  def fillin(self, object, placeholder):
     # Validate placeholder
     if placeholder.__class__ != reorder_buffer.object_placeholder:
       raise TypeError('placeholder must be of type reorder_buffer.object_placeholder')
@@ -367,6 +411,16 @@ class reorder_buffer:
       raise ValueError('placeholder was filled in already')
     # Put onto postponed list at correct position
     placeholder.slot = object
+    # Write out filled-in slots as far as possible
+    self.process_postponed()
+
+  def dontfill(self, placeholder):
+    self.fillin(reorder_buffer.dont_fill, placeholder=placeholder)
+
+  def nr_postponed(self):
+    return len(self.postponed)
+
+  def process_postponed(self):
     # Write postponed objects up to the first postponed placeholder
     while self.postponed:
       head = self.postponed[0]
@@ -380,9 +434,6 @@ class reorder_buffer:
       else:
         self.postponed.pop(0)
         self.writer.write(head.slot)
-
-  def dontfill(self, placeholder):
-    self.fillin(reorder_buffer.dont_fill, placeholder=placeholder)
 
   def close(self):
     if self.postponed:
