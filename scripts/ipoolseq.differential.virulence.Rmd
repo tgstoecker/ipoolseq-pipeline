@@ -104,6 +104,9 @@ library(rtracklayer)
 library(plotly)
 source("scripts/ipoolseq.model.R")
 
+#limit data.table threads to 1
+setDTthreads(1)
+
 # Output '-' for NA values
 options(knitr.kable.NA = '-')
 
